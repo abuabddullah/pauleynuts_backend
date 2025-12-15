@@ -82,7 +82,19 @@ const getCampaignById = catchAsync(async (req: Request, res: Response) => {
           message: 'Campaign retrieved successfully',
           data: result || undefined,
      });
-});  
+});
+
+const invitePeopleToCampaign = catchAsync(async (req: Request, res: Response) => {
+     const { campaignId } = req.params;
+     const result = await campaignService.invitePeopleToCampaign(req.body, req.user, campaignId);
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'People invited to campaign successfully',
+          data: result,
+     });
+});
 
 export const campaignController = {
      createCampaign,
@@ -91,5 +103,6 @@ export const campaignController = {
      updateCampaign,
      deleteCampaign,
      hardDeleteCampaign,
-     getCampaignById
+     getCampaignById,
+     invitePeopleToCampaign,
 };

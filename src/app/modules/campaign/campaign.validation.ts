@@ -80,7 +80,49 @@ const updateCampaignZodSchema = z.object({
           ),
 });
 
+const invitePeopleToCampaignZodSchema = z.object({
+     body: z
+          .object({
+               invitees: z
+                    .array(
+                         z.object({
+                              invitationForPhone: z
+                                   .string()
+                                   .min(8, 'Phone number must be at least 8 characters')
+                                   .max(20, 'Phone number cannot be longer than 20 characters')
+                                   .describe('Phone number of the invitee'),
+                              invitationForName: z
+                                   .string()
+                                   .min(2, 'Name must be at least 2 characters')
+                                   .max(100, 'Name cannot be longer than 100 characters')
+                                   .describe('Optional name for the invitee'),
+                         }),
+                    )
+                    .min(3, 'At least three phone numbers are required for invitation')
+                    .max(
+                         12,
+                         'Maximum 12 phone numbers allowed for invitation per batch (3-12) for optimal performance and system stability. Please batch your invitations for better performance and reliability. Contact support if you need to invite more users.',
+                    ),
+               donationAmount: z.number().min(1, 'Donation amount must be at least 1').optional(),
+               paymentMethod: z.string().describe('Payment method for the donation').optional(),
+          })
+          .superRefine((data, ctx) => {
+               if (data.donationAmount && !data.paymentMethod) {
+                    ctx.addIssue({
+                         code: z.ZodIssueCode.custom,
+                         path: ['paymentMethod'],
+                         message: 'Payment method is required when donation amount is provided',
+                    });
+               }
+          }),
+
+     params: z.object({
+          campaignId: z.string().describe('Campaign ID'),
+     }),
+});
+
 export const campaignValidation = {
      createCampaignZodSchema,
      updateCampaignZodSchema,
+     invitePeopleToCampaignZodSchema,
 };

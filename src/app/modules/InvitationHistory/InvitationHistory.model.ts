@@ -14,6 +14,9 @@ const InvitationHistorySchema = new Schema<IInvitationHistory>(
                ref: 'Campaign',
                required: [true, 'Campaign ID is required'],
           },
+          isDonated: {
+               type: Boolean,
+          },
           referralLink: {
                type: String,
                trim: true,

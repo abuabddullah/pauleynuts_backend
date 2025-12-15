@@ -10,10 +10,14 @@ import { campaignValidation } from './campaign.validation';
 
 const router = express.Router();
 
-router.post('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-    fileUploadHandler(),
-    parseFileData(FOLDER_NAMES.IMAGE),
-    validateRequest(campaignValidation.createCampaignZodSchema), campaignController.createCampaign);
+router.post(
+     '/',
+     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+     fileUploadHandler(),
+     parseFileData(FOLDER_NAMES.IMAGE),
+     validateRequest(campaignValidation.createCampaignZodSchema),
+     campaignController.createCampaign,
+);
 
 router.get('/', campaignController.getAllCampaigns);
 
@@ -21,9 +25,21 @@ router.get('/unpaginated', campaignController.getAllUnpaginatedCampaigns);
 
 router.delete('/hard-delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), campaignController.hardDeleteCampaign);
 
-router.patch('/:id', fileUploadHandler(),
-    parseFileData(FOLDER_NAMES.IMAGE), auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-    validateRequest(campaignValidation.updateCampaignZodSchema), campaignController.updateCampaign);
+router.post(
+     '/invite-donate/:campaignId',
+     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER),
+     validateRequest(campaignValidation.invitePeopleToCampaignZodSchema),
+     campaignController.invitePeopleToCampaign,
+);
+
+router.patch(
+     '/:id',
+     fileUploadHandler(),
+     parseFileData(FOLDER_NAMES.IMAGE),
+     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+     validateRequest(campaignValidation.updateCampaignZodSchema),
+     campaignController.updateCampaign,
+);
 
 router.delete('/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), campaignController.deleteCampaign);
 

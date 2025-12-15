@@ -4,6 +4,14 @@ import { Campaign } from './campaign.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import unlinkFile from '../../../shared/unlinkFile';
 import { ICampaign } from './campaign.interface';
+import { User } from '../user/user.model';
+import { IInvitationHistory } from '../InvitationHistory/InvitationHistory.interface';
+import { InvitationType } from '../InvitationHistory/InvitationHistory.enum';
+import { InvitationHistory } from '../InvitationHistory/InvitationHistory.model';
+import sendSMS from '../../../shared/sendSMS';
+import { paymentStatusType } from '../Transaction/Transaction.interface';
+import { Transaction } from '../Transaction/Transaction.model';
+import mongoose from 'mongoose';
 
 const createCampaign = async (payload: ICampaign & { image?: string }): Promise<ICampaign> => {
      const createCampaignDto = {
@@ -78,6 +86,81 @@ const getCampaignById = async (id: string): Promise<ICampaign | null> => {
      return result;
 };
 
+const invitePeopleToCampaign = async (
+     payload: { invitees: { invitationForPhone: string; invitationForName?: string }[]; donationAmount?: number; paymentMethod?: string },
+     user: any,
+     campaignId: string,
+) => {
+     const campaign = await Campaign.findById(campaignId);
+     if (!campaign) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Campaign not found.');
+     }
+     const isExitUser = await User.findById(user.id).select('name contact');
+     if (!isExitUser) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'User not found.');
+     }
+     const batchInvitationDto = [];
+     // Populate batchInvitationDto with data from payload
+     for (const invitee of payload.invitees) {
+          batchInvitationDto.push({
+               type: InvitationType.invitation,
+               campaignId: campaign._id,
+               invitationFromUser: isExitUser._id,
+               invitationFromPhone: isExitUser.contact || '',
+               invitationForPhone: invitee.invitationForPhone,
+               invitationForName: invitee.invitationForName || '',
+               isDonated: payload.donationAmount && payload.donationAmount > 0,
+          });
+
+          if (invitee.invitationForPhone) {
+               await sendSMS(invitee.invitationForPhone, `You've been invited to join campaign "${campaign.title}". Join now!`);
+          }
+     }
+     const session = await mongoose.startSession();
+     session.startTransaction();
+
+     try {
+          // Create invitation records (bulk insert)
+          await InvitationHistory.insertMany(batchInvitationDto, { session });
+
+          if (payload.donationAmount && payload.donationAmount > 0) {
+               const donationDto = {
+                    donorId: isExitUser._id,
+                    donorPhone: isExitUser.contact || '',
+                    paymentMethod: payload.paymentMethod,
+                    transactionId: `INV-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+                    amountPaid: payload.donationAmount,
+                    campaignId: campaign._id,
+                    paymentStatus: paymentStatusType.COMPLETED,
+               };
+
+               // Create a donation record
+               const createdDonation = await Transaction.create([donationDto], { session });
+               if (!createdDonation) {
+                    throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create donation record');
+               }
+          }
+
+          // Commit the transaction if everything is successful
+          await session.commitTransaction();
+          session.endSession();
+
+          return {
+               message: 'People invited successfully',
+               donationAmount: payload.donationAmount && payload.donationAmount > 0 ? payload.donationAmount : undefined,
+          };
+     } catch (error) {
+          console.log('🚀 ~ invitePeopleToCampaign ~ error:', error);
+
+          // Abort the transaction if an error occurs
+          await session.abortTransaction();
+          session.endSession();
+
+          // Re-throw the error so it can be handled by the calling function
+          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'Failed to process invitation and donation');
+     }
+};
+
 export const campaignService = {
      createCampaign,
      getAllCampaigns,
@@ -86,4 +169,5 @@ export const campaignService = {
      deleteCampaign,
      hardDeleteCampaign,
      getCampaignById,
+     invitePeopleToCampaign,
 };

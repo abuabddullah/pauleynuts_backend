@@ -181,7 +181,11 @@ const verifyContactToDB = async (payload: IVerifyContact) => {
      if (!isExistUser.verified || payload.isForLogin) {
           await User.findOneAndUpdate({ _id: isExistUser._id }, { verified: true, authentication: { oneTimeCode: null, expireAt: null } });
           //create token
-          accessToken = jwtHelper.createToken({ id: isExistUser._id, role: isExistUser.role, email: isExistUser.email }, config.jwt.jwt_secret as Secret, config.jwt.jwt_expire_in as string);
+          accessToken = jwtHelper.createToken(
+               { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email, contact: isExistUser.contact },
+               config.jwt.jwt_secret as Secret,
+               config.jwt.jwt_expire_in as string,
+          );
           message = payload.isForLogin ? 'Login successfull' : 'Contact verification successfull';
           user = await User.findById(isExistUser._id);
      } else {
