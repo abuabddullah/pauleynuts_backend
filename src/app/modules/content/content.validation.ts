@@ -1,4 +1,11 @@
 import { z } from 'zod';
+import { progressAlertDayEnum, progressAlertFrequeincyEnum } from './content.enum';
+import { query } from 'winston';
+
+const timeRangeSchema = z.object({
+     startDate: z.string().datetime().optional(),
+     endDate: z.string().datetime().optional(),
+});
 
 const founderSchema = z.object({
      name: z.string({ required_error: 'Founder name is required' }),
@@ -105,7 +112,36 @@ export const updateContentValidation = z.object({
      }),
 });
 
+// Time range query schema for API requests
+export const timeRangeQuerySchema = z.object({
+     query: z
+          .object({
+               endDate: z.string(),
+               startDate: z.string(),
+          })
+          .superRefine(async (data, ctx) => {
+               const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+               if (!datePattern.test(data.startDate)) {
+                    ctx.addIssue({
+                         path: ['startDate'],
+                         message: 'Start date should be in format yyyy-mm-dd',
+                         code: z.ZodIssueCode.custom,
+                    });
+               }
+               if (!datePattern.test(data.endDate)) {
+                    ctx.addIssue({
+                         path: ['endDate'],
+                         message: 'End date should be in format yyyy-mm-dd',
+                         code: z.ZodIssueCode.custom,
+                    });
+               }
+          }),
+});
+
+// Export all validations
 export const ContentValidation = {
      createContentValidation,
      updateContentValidation,
+     timeRangeSchema,
+     timeRangeQuerySchema,
 };
