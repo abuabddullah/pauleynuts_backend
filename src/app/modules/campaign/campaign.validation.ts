@@ -83,7 +83,7 @@ const updateCampaignZodSchema = z.object({
 const invitePeopleToCampaignZodSchema = z.object({
      body: z
           .object({
-               invitees: z
+               myInvitees: z
                     .array(
                          z.object({
                               invitationForPhone: z
@@ -105,6 +105,7 @@ const invitePeopleToCampaignZodSchema = z.object({
                     ),
                donationAmount: z.number().min(1, 'Donation amount must be at least 1').optional(),
                paymentMethod: z.string().describe('Payment method for the donation').optional(),
+               invitationIrecievedFrom: z.string().describe('Invitation from'),
           })
           .superRefine((data, ctx) => {
                if (data.donationAmount && !data.paymentMethod) {

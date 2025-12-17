@@ -12,6 +12,7 @@ import sendSMS from '../../../shared/sendSMS';
 import { paymentStatusType } from '../Transaction/Transaction.interface';
 import { Transaction } from '../Transaction/Transaction.model';
 import mongoose from 'mongoose';
+import { sendNotifications } from '../../../helpers/notificationsHelper';
 
 const createCampaign = async (payload: ICampaign & { image?: string }): Promise<ICampaign> => {
      const createCampaignDto = {
@@ -87,21 +88,31 @@ const getCampaignById = async (id: string): Promise<ICampaign | null> => {
 };
 
 const invitePeopleToCampaign = async (
-     payload: { invitees: { invitationForPhone: string; invitationForName?: string }[]; donationAmount?: number; paymentMethod?: string },
-     user: any,
+     payload: { myInvitees: { invitationForPhone: string; invitationForName?: string }[]; donationAmount?: number; paymentMethod?: string; invitationIrecievedFrom: string }, // totalRaised+
+     user: any, // totalDonated+,totalInvited+
      campaignId: string,
 ) => {
+     if (payload.invitationIrecievedFrom.toString() === user.id.toString()) {
+          throw new AppError(StatusCodes.BAD_REQUEST, 'You can not invite yourself.');
+     }
      const campaign = await Campaign.findById(campaignId);
      if (!campaign) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Campaign not found.');
      }
-     const isExitUser = await User.findById(user.id).select('name contact');
-     if (!isExitUser) {
+     // Check Double User
+     const isExitUser = await User.findById(user.id)
+
+     if (!isExitUser || !isExitUser.contact) {
           throw new AppError(StatusCodes.NOT_FOUND, 'User not found.');
      }
+     const isInvitationUser = await User.findById({ _id: payload.invitationIrecievedFrom });
+     if (!isInvitationUser) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Invitation User not found.');
+     }
+
      const batchInvitationDto = [];
      // Populate batchInvitationDto with data from payload
-     for (const invitee of payload.invitees) {
+     for (const invitee of payload.myInvitees) {
           batchInvitationDto.push({
                type: InvitationType.invitation,
                campaignId: campaign._id,
@@ -116,6 +127,9 @@ const invitePeopleToCampaign = async (
                await sendSMS(invitee.invitationForPhone, `You've been invited to join campaign "${campaign.title}". Join now!`);
           }
      }
+
+
+
      const session = await mongoose.startSession();
      session.startTransaction();
 
@@ -139,11 +153,20 @@ const invitePeopleToCampaign = async (
                if (!createdDonation) {
                     throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create donation record');
                }
+
+               console.log(payload.myInvitees.length)
+               console.log(payload.donationAmount)
+               await User.updateOne({ _id: isInvitationUser._id }, { $inc: { totalRaised: payload.donationAmount || 0 } }, { session });
+
+               await User.updateOne({ _id: isExitUser._id }, { $inc: { totalDonated: payload.donationAmount || 0, totalInvited: payload.myInvitees.length } }, { session });
           }
 
           // Commit the transaction if everything is successful
           await session.commitTransaction();
           session.endSession();
+
+          // // notify to admin ⏰
+          // await sendNotifications()
 
           return {
                message: 'People invited successfully',

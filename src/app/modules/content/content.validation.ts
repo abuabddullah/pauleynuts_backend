@@ -11,7 +11,7 @@ const userLevelStrategySchema = z.object({
      level: z.number({ required_error: 'Level is required' }).int().positive(),
      title: z.string({ required_error: 'Title is required' }),
      description: z.string({ required_error: 'Description is required' }),
-     benefits: z.array(z.string()).min(1, 'At least one benefit is required'),
+     benefits: z.array(z.string()).min(1, 'At least one benefit is required').optional(),
 });
 
 const privacyPolicySchema = z.object({

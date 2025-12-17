@@ -15,7 +15,9 @@ router.post('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), validateRequest
 router.get('/', TransactionController.getAllTransactions);
 
 router.get('/unpaginated', TransactionController.getAllUnpaginatedTransactions);
-
+// ⏰
+// router.post('/send-success-message/:transactionId', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TransactionController.sendSuccessMessage);
+// service : await sendSMS(createUser.contact!, `dsfsdfsdffdsf`);
 router.delete('/hard-delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), TransactionController.hardDeleteTransaction);
 
 router.patch('/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), validateRequest(TransactionValidation.updateTransactionZodSchema), TransactionController.updateTransaction);

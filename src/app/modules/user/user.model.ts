@@ -95,6 +95,18 @@ const userSchema = new Schema<IUser, UserModel>(
                select: false,
           },
           userLevel: String,
+          totalRaised: {
+               type: Number,
+               default: 0,
+          },
+          totalDonated: {
+               type: Number,
+               default: 0,
+          },
+          totalInvited: {
+               type: Number,
+               default: 0,
+          },
      },
      { timestamps: true },
 );

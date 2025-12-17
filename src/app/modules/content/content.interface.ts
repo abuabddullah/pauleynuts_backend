@@ -11,7 +11,10 @@ export type UserLevelStrategy = {
      level: number;
      title: string;
      description: string;
-     benefits: string[];
+     benefits?: string[];
+     targetInvitation: number; // ⏰
+     targetDonation: number;
+     targetRaising: number;
 };
 
 export type PrivacyPolicy = {
@@ -43,6 +46,16 @@ export interface IContent extends Document {
 
      // User Level Strategy
      userLevelStrategy: UserLevelStrategy[];
+
+     // cront notification Strategy ⏰
+     notificationStrategy: {
+          campaignExpiredAlert: boolean;
+          lowProgressWarning: boolean; // Alert when campaign is below 25% with 1 week left.
+          mileStoneAlert: boolean; // true
+          mileStoneAlertMessage: string;
+          weeklyProgressAlert: boolean; // true
+          weeklyProgressAlertMessage: string;
+     };
 
      // Media
      gallery: string[];

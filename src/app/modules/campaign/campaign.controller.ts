@@ -86,6 +86,7 @@ const getCampaignById = catchAsync(async (req: Request, res: Response) => {
 
 const invitePeopleToCampaign = catchAsync(async (req: Request, res: Response) => {
      const { campaignId } = req.params;
+
      const result = await campaignService.invitePeopleToCampaign(req.body, req.user, campaignId);
 
      sendResponse(res, {

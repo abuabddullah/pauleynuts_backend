@@ -20,6 +20,9 @@ export type IUser = {
           expireAt: Date;
      };
      userLevel: string;
+     totalRaised: number;
+     totalDonated: number;
+     totalInvited: number;
 };
 
 export type UserModel = {
