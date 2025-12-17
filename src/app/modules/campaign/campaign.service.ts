@@ -18,6 +18,7 @@ import { UserLevelStrategy } from '../content/content.interface';
 import { USER_ROLES } from '../../../enums/user';
 import { INotification } from '../notification/notification.interface';
 import { IUser } from '../user/user.interface';
+import { CampaignStatus } from './campaign.enum';
 
 const createCampaign = async (payload: ICampaign & { image?: string }): Promise<ICampaign> => {
      const createCampaignDto = {
@@ -102,7 +103,10 @@ const invitePeopleToCampaign = async (
      }
      const campaign = await Campaign.findById(campaignId);
      if (!campaign) {
-          throw new AppError(StatusCodes.NOT_FOUND, 'Campaign not found.');
+          throw new AppError(StatusCodes.NOT_FOUND, 'Campaign not found.Or its already reached its target amount.');
+     }
+     if (campaign.overall_raised >= campaign.targetAmount) {
+          await Campaign.updateOne({ _id: campaign._id }, { campaignStatus: CampaignStatus.COMPLETED });
      }
      // Check Double User
      const isExitUser = await User.findById(user.id);

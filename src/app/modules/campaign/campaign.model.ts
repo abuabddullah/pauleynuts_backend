@@ -38,6 +38,7 @@ const CampaignSchema = new Schema<ICampaign>(
           cause_mission: { type: String, default: '' },
           cause_image: { type: String, default: '' },
           isDeleted: { type: Boolean, default: false },
+          milestoneNotified: { type: Boolean, default: false },
           deletedAt: { type: Date },
      },
      { timestamps: true },

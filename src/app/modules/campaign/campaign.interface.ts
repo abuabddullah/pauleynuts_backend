@@ -34,6 +34,7 @@ export interface ICampaign extends Document {
      createdAt: Date;
      updatedAt: Date;
      isDeleted: boolean;
+     milestoneNotified: boolean;
      deletedAt?: Date;
 }
 

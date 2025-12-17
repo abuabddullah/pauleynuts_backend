@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose';
 import { IContent, ContentModel } from './content.interface';
 import { UserLevel } from '../user/user.enum';
+import { progressAlertDayEnum, progressAlertFrequeincyEnum } from './content.enum';
 
 const founderSchema = new Schema(
      {
@@ -65,8 +66,13 @@ const contentSchema = new Schema<IContent, ContentModel>(
                lowProgressWarning: Boolean,
                mileStoneAlert: Boolean,
                mileStoneAlertMessage: String,
-               weeklyProgressAlert: Boolean,
-               weeklyProgressAlertMessage: String,
+               progressAlert: Boolean,
+               progressAlertMessage: String,
+               progressAlertSchedule: {
+                    frequency: { type: String, enum: Object.values(progressAlertFrequeincyEnum), required: true },
+                    day: { type: String, enum: Object.values(progressAlertDayEnum), required: true },
+                    time: { type: String, default: '10:00' },
+               },
           },
 
           // Media

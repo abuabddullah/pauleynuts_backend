@@ -1,5 +1,6 @@
 import { Document, Model, ObjectId } from 'mongoose';
 import { UserLevel } from '../user/user.enum';
+import { progressAlertDayEnum, progressAlertFrequeincyEnum } from './content.enum';
 
 export type Founder = {
      name: string;
@@ -54,8 +55,13 @@ export interface IContent extends Document {
           lowProgressWarning: boolean; // Alert when campaign is below 25% with 1 week left.
           mileStoneAlert: boolean; // true
           mileStoneAlertMessage: string;
-          weeklyProgressAlert: boolean; // true
-          weeklyProgressAlertMessage: string;
+          progressAlert: boolean; // true
+          progressAlertMessage: string;
+          progressAlertSchedule: {
+               frequency: progressAlertFrequeincyEnum;
+               day: progressAlertDayEnum;
+               time?: string; // optional, default 10 AM
+          };
      };
 
      // Media
