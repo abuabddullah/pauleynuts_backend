@@ -3,6 +3,8 @@ import { UserRouter } from '../app/modules/user/user.route';
 import { AuthRouter } from '../app/modules/auth/auth.route';
 import { campaignRoutes } from '../app/modules/campaign/campaign.route';
 import { ContentRoutes } from '../app/modules/content/content.routes';
+import { TransactionRoutes } from '../app/modules/Transaction/Transaction.route';
+import { InvitationHistoryRoutes } from '../app/modules/InvitationHistory/InvitationHistory.route';
 
 const router = express.Router();
 const routes = [
@@ -21,6 +23,14 @@ const routes = [
      {
           path: '/content',
           route: ContentRoutes,
+     },
+     {
+          path: '/transactions',
+          route: TransactionRoutes,
+     },
+     {
+          path: '/invitation-history',
+          route: InvitationHistoryRoutes,
      },
 ];
 
