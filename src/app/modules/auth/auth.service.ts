@@ -25,7 +25,6 @@ const loginUserFromDB = async (payload: ILoginData) => {
           throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
      }
 
-
      // Handle OAuth users (they don't have passwords)
      if (isExistUser.oauthProvider) {
           throw new AppError(StatusCodes.BAD_REQUEST, `This account was created using ${isExistUser.oauthProvider}. Please use the ${isExistUser.oauthProvider} login option.`);
@@ -86,9 +85,16 @@ const forgetPasswordToDB = async (email: string) => {
      await User.findOneAndUpdate({ email }, { $set: { authentication } });
 };
 // resend otp
-const resendOtpFromDb = async (contact: string) => {
+const resendOtpFromDb = async (payload: { email?: string; contact?: string }) => {
      // Check if the user exists
-     const isExistUser = await User.isExistUserByContact(contact);
+     let isExistUser;
+     if (payload.email) {
+          delete payload.contact;
+          isExistUser = await User.isExistUserByEmail(payload.email);
+     } else {
+          delete payload.email;
+          isExistUser = await User.isExistUserByContact(payload.contact!);
+     }
      if (!isExistUser || !isExistUser._id) {
           throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
      }
@@ -108,7 +114,7 @@ const resendOtpFromDb = async (contact: string) => {
                { session }, // Pass session as an option
           );
           // send sms for otp
-          await sendSMS(isExistUser.contact!, `Your OTP is ${otp}`);
+          // await sendSMS(isExistUser.contact!, `Your OTP is ${otp}`); // ⬅️
           // Commit the transaction
           await session.commitTransaction();
           session.endSession();

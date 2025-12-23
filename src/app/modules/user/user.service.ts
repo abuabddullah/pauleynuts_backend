@@ -14,9 +14,6 @@ import mongoose from 'mongoose';
 const createUserToDB = async (payload: { name: string; contact: string; role: USER_ROLES }): Promise<IUser> => {
      //set role
      const user = await User.isExistUserByContact(payload.contact);
-     if (user) {
-          throw new AppError(StatusCodes.CONFLICT, 'User already exists by this contact');
-     }
      const otp = generateOTP(4);
      //save to DB
      const authentication = {
@@ -28,18 +25,24 @@ const createUserToDB = async (payload: { name: string; contact: string; role: US
      const session = await mongoose.startSession();
      session.startTransaction();
      try {
-          const [createUser] = await User.create([createUserDto], { session });
+          let createUser;
+          
+          if (!user) {
+               [createUser] = await User.create([createUserDto], { session });
+          } else {
+               createUser = await User.findOneAndUpdate({ _id: user._id }, { $set: { authentication } }, { new: true });
+          }
           if (!createUser) {
                throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create user');
           }
 
           // send sms for otp
-          await sendSMS(createUser.contact!, `Your OTP is ${otp}`);
+          // await sendSMS(createUser.contact!, `Your OTP is ${otp}`); // ⬅️
 
           // Commit the transaction
           await session.commitTransaction();
           session.endSession();
-          delete createUser.authentication;
+          // delete createUser.authentication; // ⬅️
           return createUser;
      } catch (error) {
           console.log('🚀 ~ createUserToDB ~ error:', error);
