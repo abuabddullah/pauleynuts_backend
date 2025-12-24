@@ -90,6 +90,7 @@ const forgetPasswordToDB = async (email: string) => {
 };
 // resend otp
 const resendOtpFromDb = async (payload: { email?: string; contact?: string }) => {
+     console.log('🚀 ~ resendOtpFromDb ~ payload:', payload);
      // Check if the user exists
      let isExistUser;
      if (payload.email) {
@@ -100,7 +101,7 @@ const resendOtpFromDb = async (payload: { email?: string; contact?: string }) =>
           isExistUser = await User.isExistUserByContact(payload.contact!);
      }
      if (!isExistUser || !isExistUser._id) {
-          throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
+          throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist**!");
      }
 
      // send email
@@ -118,10 +119,15 @@ const resendOtpFromDb = async (payload: { email?: string; contact?: string }) =>
                { session }, // Pass session as an option
           );
           // send sms for otp
-          // await sendSMS(isExistUser.contact!, `Your OTP is ${otp}`); // ⬅️
+          console.log('*/*/*/*/*/*/*/*/*/*/*/');
+          await sendSMS(isExistUser.contact!, `Your OTP is ${otp}`);
           // Commit the transaction
           await session.commitTransaction();
           session.endSession();
+
+          return {
+               isVerified: true,
+          };
      } catch (error) {
           console.log('🚀 ~ resendOtpFromDb ~ error:', error);
           // Abort the transaction on error

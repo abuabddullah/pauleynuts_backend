@@ -8,10 +8,11 @@ import { IUser } from './user.interface';
 import { User } from './user.model';
 import AppError from '../../../errors/AppError';
 import generateOTP from '../../../utils/generateOTP';
-import sendSMS from '../../../shared/sendSMS';
+import sendSMS, { formatPhoneNumber, sendTwilioOTP } from '../../../shared/sendSMS';
 import mongoose from 'mongoose';
 // create user
 const createUserToDB = async (payload: { name: string; contact: string; role: USER_ROLES }): Promise<IUser> => {
+     console.log('🚀 ~ createUserToDB ~ payload:', payload);
      const otp = generateOTP(4);
      //save to DB
      const authentication = {
@@ -37,12 +38,12 @@ const createUserToDB = async (payload: { name: string; contact: string; role: US
           }
 
           // send sms for otp
-          // await sendSMS(createUser.contact!, `Your OTP is ${otp}`); // ⬅️
+          await sendSMS(createUser.contact!, `Your OTP is ${otp}`);
 
           // Commit the transaction
           await session.commitTransaction();
           session.endSession();
-          // delete createUser.authentication; // ⬅️
+          delete createUser.authentication;
           return createUser;
      } catch (error) {
           console.log('🚀 ~ createUserToDB ~ error:', error);

@@ -23,7 +23,6 @@ const userSchema = new Schema<IUser, UserModel>(
                required: function (this: IUser) {
                     return this.role === USER_ROLES.SUPER_ADMIN || this.role === USER_ROLES.ADMIN;
                },
-               unique: true,
                lowercase: true,
           },
           contact: {
@@ -138,8 +137,10 @@ userSchema.statics.isMatchPassword = async (password: string, hashPassword: stri
 // Pre-Save Hook for Hashing Password & Checking Email Uniqueness
 userSchema.pre('save', async function (next) {
      // Only check email uniqueness if this is a new user or email is being changed
-     if (this.isNew || this.isModified('email')) {
+     if (this.get('email') && (this.isNew || this.isModified('email'))) {
           const existingUser = await User.findOne({ email: this.get('email') });
+          console.log("🚀 ~ this.get('email'):", this.get('email'));
+          console.log('🚀 ~ existingUser:', existingUser);
           if (existingUser && existingUser._id.toString() !== this._id.toString()) {
                throw new AppError(StatusCodes.BAD_REQUEST, 'Email already exists!');
           }
