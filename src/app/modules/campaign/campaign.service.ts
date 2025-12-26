@@ -130,9 +130,11 @@ const hardDeleteCampaign = async (id: string): Promise<ICampaign | null> => {
      return result;
 };
 
-const getCampaignById = async (id: string): Promise<ICampaign | null> => {
+const getCampaignById = async (id: string) => {
      const result = await Campaign.findById(id);
-     return result;
+     const countOfInvitees = await InvitationHistory.countDocuments({ campaignId: id });
+     const countOfDonors = await Transaction.countDocuments({ campaignId: id });
+     return { ...result, totalInvited: countOfInvitees, totalDonated: countOfDonors };
 };
 
 const invitePeopleToCampaign = async (

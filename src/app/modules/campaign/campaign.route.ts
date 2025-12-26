@@ -44,7 +44,7 @@ router.patch(
      fileUploadHandler(),
      parseFileData(FOLDER_NAMES.IMAGE),
      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
-     validateRequest(campaignValidation.updateCampaignZodSchema),
+     // validateRequest(campaignValidation.updateCampaignZodSchema),
      campaignController.updateCampaign,
 );
 
