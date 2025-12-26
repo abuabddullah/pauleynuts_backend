@@ -40,6 +40,7 @@ const getAllInvitaAndTransactionsOfUserZodSchema = z.object({
      query: z.object({
           iLimit: z.string().optional(),
           iPage: z.string().optional(),
+          iSearchTerm: z.string().optional(),
      }),
 });
 

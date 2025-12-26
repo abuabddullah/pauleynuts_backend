@@ -24,7 +24,7 @@ const createTransaction = async (payload: ITransaction): Promise<ITransaction> =
 
 const getAllTransactions = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number }; result: ITransaction[] }> => {
      const queryBuilder = new QueryBuilder(Transaction.find().populate('donorId', 'name contact email image createdAt userLevel').populate('campaignId', 'title'), query);
-     const result = await queryBuilder.filter().sort().paginate().fields().modelQuery;
+     const result = await queryBuilder.filter().search(['campaignTitle', 'transactionId']).sort().paginate().fields().modelQuery;
      const meta = await queryBuilder.countTotal();
      return { meta, result };
 };
@@ -77,7 +77,7 @@ const sendSuccessMessage = async (id: string, payload: { message: string }): Pro
      return isExistTransaction;
 };
 
-const getAllInvitaAndTransactionsOfUser = async (userId: string, query: any & { iPage: number; iLimit: number }) => {
+const getAllInvitaAndTransactionsOfUser = async (userId: string, query: any & { iPage: number; iLimit: number; iSearchTerm: string }) => {
      console.log('🚀 ~ getAllInvitaAndTransactionsOfUser ~ query:', query);
      const isExistUser = await User.findById(userId);
      if (!isExistUser) {
@@ -88,11 +88,12 @@ const getAllInvitaAndTransactionsOfUser = async (userId: string, query: any & { 
           invitationFromPhone: isExistUser.contact!,
           page: query.iPage || 1,
           limit: query.iLimit || 10,
-          searchTerm: query.searchTerm || undefined,
+          searchTerm: query.iSearchTerm || undefined,
      });
 
      delete query.iPage;
      delete query.iLimit;
+     delete query.iSearchTerm;
      const userTransactions = await getAllTransactions(query);
 
      return { user: isExistUser, invitationHistorys: { meta, userInvita }, transactions: userTransactions };

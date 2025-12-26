@@ -19,7 +19,6 @@ const createInvitationHistory = async (payload: IInvitationHistory): Promise<IIn
 };
 
 const getAllInvitationHistorys = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number }; result: IInvitationHistory[] }> => {
-     console.log("🚀 ~ getAllInvitationHistorys ~ query:", query)
      const queryBuilder = new QueryBuilder(InvitationHistory.find().populate('campaignId', 'title').populate('invitationFromUser', 'name contact email image'), query);
      const result = await queryBuilder.filter().search(['campaignTitle', 'invitationForName invitationForPhone']).sort().paginate().fields().modelQuery;
      const meta = await queryBuilder.countTotal();
