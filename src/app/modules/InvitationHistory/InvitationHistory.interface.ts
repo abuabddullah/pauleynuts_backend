@@ -4,6 +4,7 @@ import { InvitationType } from './InvitationHistory.enum';
 export interface IInvitationHistory {
      type: InvitationType;
      campaignId: Types.ObjectId;
+     campaignTitle: string;
      isDonated?: boolean;
      referralLink?: string;
      invitationFromUser: Types.ObjectId;

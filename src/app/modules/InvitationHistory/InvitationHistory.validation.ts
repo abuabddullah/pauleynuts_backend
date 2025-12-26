@@ -7,6 +7,7 @@ const createInvitationHistoryZodSchema = z.object({
                type: z.enum(Object.values(InvitationType) as [string, ...string[]], { required_error: 'Invitation type is required' }),
                campaignId: z.string({ required_error: 'Campaign ID is required' }),
                isDonated: z.boolean().optional(),
+               campaignTitle: z.string().optional(),
                referralLink: z.string().url('Invalid referral link URL').optional(),
                invitationFromUser: z.string({ required_error: 'Inviting user ID is required' }),
                invitationFromPhone: z

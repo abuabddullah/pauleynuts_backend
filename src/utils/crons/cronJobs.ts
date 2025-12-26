@@ -6,7 +6,7 @@ import { Content } from '../../app/modules/content/content.model';
 import { Campaign } from '../../app/modules/campaign/campaign.model';
 import { Transaction } from '../../app/modules/Transaction/Transaction.model';
 import { USER_ROLES } from '../../enums/user';
-import { sendSMS } from './cron.util';
+import sendSMS from '../../shared/sendSMS';
 // ====== CRON JOB SCHEDULERS ======
 
 const scheduleExpireNotification = () => {

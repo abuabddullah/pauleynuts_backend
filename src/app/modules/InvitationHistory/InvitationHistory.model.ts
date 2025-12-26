@@ -21,6 +21,9 @@ const InvitationHistorySchema = new Schema<IInvitationHistory>(
                type: String,
                trim: true,
           },
+          campaignTitle: {
+               type: String,
+          },
           invitationFromUser: {
                type: Schema.Types.ObjectId,
                ref: 'User',

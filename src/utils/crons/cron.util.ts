@@ -26,8 +26,3 @@ export const getCronExpression = (frequency: Frequency, day: string, hour = 10):
 
      throw new Error('Invalid frequency');
 };
-
-// Placeholder for SMS sending logic (use your actual SMS provider's API)
-export const sendSMS = async (phoneNumber: string, message: string) => {
-     await sendSMS(phoneNumber, message);
-};

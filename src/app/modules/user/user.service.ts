@@ -10,6 +10,7 @@ import AppError from '../../../errors/AppError';
 import generateOTP from '../../../utils/generateOTP';
 import sendSMS, { formatPhoneNumber, sendTwilioOTP } from '../../../shared/sendSMS';
 import mongoose from 'mongoose';
+import QueryBuilder from '../../builder/QueryBuilder';
 // create user
 const createUserToDB = async (payload: { name: string; contact: string; role: USER_ROLES }): Promise<IUser> => {
      console.log('🚀 ~ createUserToDB ~ payload:', payload);
@@ -159,22 +160,27 @@ const findUserByFacebookId = async (facebookId: string): Promise<IUser | null> =
 };
 
 // Find all users (with pagination)
-const findAllUsers = async (page: number = 1, limit: number = 10) => {
-     const skip = (page - 1) * limit;
-     const users = await User.find({ isDeleted: { $ne: true } })
-          .skip(skip)
-          .limit(limit)
-          .select('-password');
+const findAllUsers = async (query: any) => {
+     const queryBuilder = new QueryBuilder(User.find({ isDeleted: { $ne: true } }), query);
+     const result = await queryBuilder.search(['name', 'contact']).filter().sort().paginate().fields().modelQuery;
+     const meta = await queryBuilder.countTotal();
+     return { meta, result };
 
-     const total = await User.countDocuments({ isDeleted: { $ne: true } });
+     // const skip = (page - 1) * limit;
+     // const users = await User.find({ isDeleted: { $ne: true } })
+     //      .skip(skip)
+     //      .limit(limit)
+     //      .select('-password');
 
-     return {
-          users,
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-     };
+     // const total = await User.countDocuments({ isDeleted: { $ne: true } });
+
+     // return {
+     //      users,
+     //      total,
+     //      page,
+     //      limit,
+     //      totalPages: Math.ceil(total / limit),
+     // };
 };
 
 // Find users by role

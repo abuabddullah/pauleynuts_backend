@@ -4,8 +4,17 @@ import { ITransaction } from './Transaction.interface';
 import { Transaction } from './Transaction.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import sendSMS from '../../../shared/sendSMS';
+import { Campaign } from '../campaign/campaign.model';
+import { User } from '../user/user.model';
+import { InvitationHistoryService } from '../InvitationHistory/InvitationHistory.service';
+import { InvitationHistory } from '../InvitationHistory/InvitationHistory.model';
 
 const createTransaction = async (payload: ITransaction): Promise<ITransaction> => {
+     const isExistCampaign = await Campaign.findById(payload.campaignId);
+     if (!isExistCampaign) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Campaign not found.');
+     }
+     payload.campaignTitle = isExistCampaign.title;
      const result = await Transaction.create(payload);
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Transaction not found.');
@@ -14,7 +23,7 @@ const createTransaction = async (payload: ITransaction): Promise<ITransaction> =
 };
 
 const getAllTransactions = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number }; result: ITransaction[] }> => {
-     const queryBuilder = new QueryBuilder(Transaction.find(), query);
+     const queryBuilder = new QueryBuilder(Transaction.find().populate('donorId', 'name contact email image createdAt userLevel').populate('campaignId', 'title'), query);
      const result = await queryBuilder.filter().sort().paginate().fields().modelQuery;
      const meta = await queryBuilder.countTotal();
      return { meta, result };
@@ -68,6 +77,26 @@ const sendSuccessMessage = async (id: string, payload: { message: string }): Pro
      return isExistTransaction;
 };
 
+const getAllInvitaAndTransactionsOfUser = async (userId: string, query: any & { iPage: number; iLimit: number }) => {
+     console.log('🚀 ~ getAllInvitaAndTransactionsOfUser ~ query:', query);
+     const isExistUser = await User.findById(userId);
+     if (!isExistUser) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'User not found.');
+     }
+
+     const { result: userInvita, meta } = await InvitationHistoryService.getAllInvitationHistorys({
+          invitationFromPhone: isExistUser.contact!,
+          page: query.iPage || 1,
+          limit: query.iLimit || 10,
+     });
+
+     delete query.iPage;
+     delete query.iLimit;
+     const userTransactions = await getAllTransactions(query);
+
+     return { user: isExistUser, invitationHistorys: { meta, userInvita }, transactions: userTransactions };
+};
+
 export const TransactionService = {
      createTransaction,
      getAllTransactions,
@@ -77,4 +106,5 @@ export const TransactionService = {
      hardDeleteTransaction,
      getTransactionById,
      sendSuccessMessage,
+     getAllInvitaAndTransactionsOfUser,
 };

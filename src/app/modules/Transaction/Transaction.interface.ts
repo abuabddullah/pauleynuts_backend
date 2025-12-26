@@ -18,6 +18,7 @@ export interface ITransaction {
      transactionId: string;
      amountPaid: number;
      campaignId: Types.ObjectId;
+     campaignTitle: string;
      paymentStatus: paymentStatusType;
 }
 

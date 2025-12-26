@@ -10,6 +10,7 @@ const createInvitationHistory = async (payload: IInvitationHistory): Promise<IIn
      if (!isExistCampaign) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Campaign not found.');
      }
+     payload.campaignTitle = isExistCampaign.title;
      const result = await InvitationHistory.create(payload);
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'InvitationHistory not found.');
@@ -18,8 +19,9 @@ const createInvitationHistory = async (payload: IInvitationHistory): Promise<IIn
 };
 
 const getAllInvitationHistorys = async (query: Record<string, any>): Promise<{ meta: { total: number; page: number; limit: number }; result: IInvitationHistory[] }> => {
-     const queryBuilder = new QueryBuilder(InvitationHistory.find(), query);
-     const result = await queryBuilder.filter().sort().paginate().fields().modelQuery;
+     console.log("🚀 ~ getAllInvitationHistorys ~ query:", query)
+     const queryBuilder = new QueryBuilder(InvitationHistory.find().populate('campaignId', 'title').populate('invitationFromUser', 'name contact email image'), query);
+     const result = await queryBuilder.filter().search(['campaignTitle', 'invitationForName invitationForPhone']).sort().paginate().fields().modelQuery;
      const meta = await queryBuilder.countTotal();
      return { meta, result };
 };

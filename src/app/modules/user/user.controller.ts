@@ -19,7 +19,6 @@ const createUser = catchAsync(async (req, res) => {
      });
 });
 
-
 const createAdmin = catchAsync(async (req, res) => {
      const { ...userData } = req.body;
      const result = await UserService.createAdminToDB(userData);
@@ -93,7 +92,7 @@ const deleteProfile = catchAsync(async (req, res) => {
 const findUserById = catchAsync(async (req, res) => {
      const { id } = req.params;
      const result = await UserService.findUserById(id);
-     
+
      if (!result) {
           return sendResponse(res, {
                success: false,
@@ -114,7 +113,7 @@ const findUserById = catchAsync(async (req, res) => {
 const findUserByEmail = catchAsync(async (req, res) => {
      const { email } = req.params;
      const result = await UserService.findUserByEmail(email);
-     
+
      if (!result) {
           return sendResponse(res, {
                success: false,
@@ -135,7 +134,7 @@ const findUserByEmail = catchAsync(async (req, res) => {
 const findUserByGoogleId = catchAsync(async (req, res) => {
      const { googleId } = req.params;
      const result = await UserService.findUserByGoogleId(googleId);
-     
+
      if (!result) {
           return sendResponse(res, {
                success: false,
@@ -156,7 +155,7 @@ const findUserByGoogleId = catchAsync(async (req, res) => {
 const findUserByFacebookId = catchAsync(async (req, res) => {
      const { facebookId } = req.params;
      const result = await UserService.findUserByFacebookId(facebookId);
-     
+
      if (!result) {
           return sendResponse(res, {
                success: false,
@@ -175,10 +174,7 @@ const findUserByFacebookId = catchAsync(async (req, res) => {
 
 // Get all users with pagination
 const getAllUsers = catchAsync(async (req, res) => {
-     const page = parseInt(req.query.page as string) || 1;
-     const limit = parseInt(req.query.limit as string) || 10;
-     
-     const result = await UserService.findAllUsers(page, limit);
+     const result = await UserService.findAllUsers(req.query);
 
      sendResponse(res, {
           success: true,
@@ -193,7 +189,7 @@ const getUsersByRole = catchAsync(async (req, res) => {
      const { role } = req.params;
      const page = parseInt(req.query.page as string) || 1;
      const limit = parseInt(req.query.limit as string) || 10;
-     
+
      if (!Object.values(USER_ROLES).includes(role as USER_ROLES)) {
           return sendResponse(res, {
                success: false,
@@ -201,7 +197,7 @@ const getUsersByRole = catchAsync(async (req, res) => {
                message: 'Invalid role',
           });
      }
-     
+
      const result = await UserService.findUsersByRole(role as USER_ROLES, page, limit);
 
      sendResponse(res, {
@@ -242,7 +238,7 @@ const searchUsers = catchAsync(async (req, res) => {
      const { q } = req.query;
      const page = parseInt(req.query.page as string) || 1;
      const limit = parseInt(req.query.limit as string) || 10;
-     
+
      if (!q) {
           return sendResponse(res, {
                success: false,
@@ -250,7 +246,7 @@ const searchUsers = catchAsync(async (req, res) => {
                message: 'Search term is required',
           });
      }
-     
+
      const result = await UserService.searchUsers(q as string, page, limit);
 
      sendResponse(res, {
@@ -277,7 +273,7 @@ const getUserStats = catchAsync(async (req, res) => {
 const linkOAuthAccount = catchAsync(async (req, res) => {
      const { userId } = req.params;
      const { provider, providerId } = req.body;
-     
+
      if (!provider || !providerId) {
           return sendResponse(res, {
                success: false,
@@ -285,7 +281,7 @@ const linkOAuthAccount = catchAsync(async (req, res) => {
                message: 'Provider and providerId are required',
           });
      }
-     
+
      const result = await UserService.linkOAuthAccount(userId, provider, providerId);
 
      sendResponse(res, {
@@ -300,7 +296,7 @@ const linkOAuthAccount = catchAsync(async (req, res) => {
 const unlinkOAuthAccount = catchAsync(async (req, res) => {
      const { userId } = req.params;
      const { provider } = req.body;
-     
+
      if (!provider) {
           return sendResponse(res, {
                success: false,
@@ -308,7 +304,7 @@ const unlinkOAuthAccount = catchAsync(async (req, res) => {
                message: 'Provider is required',
           });
      }
-     
+
      const result = await UserService.unlinkOAuthAccount(userId, provider);
 
      sendResponse(res, {

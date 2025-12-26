@@ -5,8 +5,8 @@ export interface INotification {
      message: string;
      receiver: Types.ObjectId;
      reference?: string;
-     referenceModel?: 'Transaction' | 'Order' | 'Message';
+     referenceModel?: 'PAYMENT' | 'ORDER' | 'MESSAGE' | 'REFUND' | 'ALERT' | 'DELIVERY' | 'CANCELLED';
      screen?: 'DASHBOARD' | 'PAYMENT_HISTORY' | 'PROFILE';
      read: boolean;
-     type?: 'ADMIN' | 'SYSTEM' | 'PAYMENT' | 'MESSAGE' | 'ALERT';
+     type?: 'ADMIN' | 'SYSTEM' | 'PAYMENT' | 'MESSAGE' | 'ALERT' | 'REFUND' | 'ORDER' | 'DELIVERY' | 'CANCELLED';
 }

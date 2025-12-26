@@ -11,7 +11,7 @@ const verifyContact = catchAsync(async (req, res) => {
      const { ...verifyData } = req.body;
      const result = await AuthService.verifyContactToDB(verifyData);
 
-     sendResponse(res, { success: true, statusCode: StatusCodes.OK, message: result.message, data: { verifyToken: result.verifyToken, accessToken: result.accessToken } });
+     sendResponse(res, { success: true, statusCode: StatusCodes.OK, message: result.message, data: { verifyToken: result.verifyToken, accessToken: result.accessToken, isVerified: true } });
 });
 
 const loginUser = catchAsync(async (req, res) => {
@@ -65,9 +65,9 @@ const changePassword = catchAsync(async (req, res) => {
 });
 // resend Otp
 const resendOtp = catchAsync(async (req, res) => {
-     await AuthService.resendOtpFromDb(req.body);
+     const result = await AuthService.resendOtpFromDb(req.body);
 
-     sendResponse(res, { success: true, statusCode: StatusCodes.OK, message: 'OTP sent successfully again' });
+     sendResponse(res, { success: true, statusCode: StatusCodes.OK, message: 'OTP sent successfully again', data: result });
 });
 
 // refresh token

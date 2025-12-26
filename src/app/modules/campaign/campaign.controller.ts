@@ -4,7 +4,7 @@ import sendResponse from '../../../shared/sendResponse';
 import { campaignService } from './campaign.service';
 
 const createCampaign = catchAsync(async (req: Request, res: Response) => {
-     const result = await campaignService.createCampaign(req.body);
+     const result = await campaignService.createCampaign(req.body, req.user);
 
      sendResponse(res, {
           statusCode: 200,

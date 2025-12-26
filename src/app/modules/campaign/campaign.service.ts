@@ -20,10 +20,11 @@ import { INotification } from '../notification/notification.interface';
 import { IUser } from '../user/user.interface';
 import { CampaignStatus } from './campaign.enum';
 
-const createCampaign = async (payload: ICampaign & { image?: string }): Promise<ICampaign> => {
+const createCampaign = async (payload: ICampaign & { image?: string }, user: any): Promise<ICampaign> => {
      const createCampaignDto = {
           ...payload,
           cause_image: payload.image,
+          createdBy: new mongoose.Types.ObjectId(user.id),
      };
      const result = await Campaign.create(createCampaignDto);
      if (!result) {
@@ -47,7 +48,7 @@ const getAllUnpaginatedCampaigns = async (): Promise<ICampaign[]> => {
      return result;
 };
 
-const updateCampaign = async (id: string, payload: Partial<ICampaign & { image?: string }>): Promise<ICampaign | null> => {
+const updateCampaign = async (id: string, payload: Partial<ICampaign & { image?: string; isSendAlert?: boolean }>): Promise<ICampaign | null> => {
      const isExist = await Campaign.findById(id);
      if (!isExist) {
           if (payload.image) {
@@ -63,7 +64,48 @@ const updateCampaign = async (id: string, payload: Partial<ICampaign & { image?:
           ...payload,
           cause_image: payload.image,
      };
-     return await Campaign.findByIdAndUpdate(id, updateCampaignDto, { new: true });
+     const result = await Campaign.findByIdAndUpdate(id, updateCampaignDto, { new: true });
+     if (result && payload.isSendAlert) {
+          // Get all unique donors for this campaign
+          const transactions = await Transaction.find({
+               campaignId: id,
+               isDeleted: false,
+               paymentStatus: 'completed', // Only include successful transactions
+          })
+               .select('donorPhone')
+               .lean();
+
+          // Get all unique invitees for this campaign
+          const invitees = await InvitationHistory.find({
+               campaignId: id,
+               isDeleted: false,
+          })
+               .select('invitationForPhone')
+               .lean();
+
+          // Combine and deduplicate phone numbers
+          const donorPhones = [...new Set(transactions.map((t) => t.donorPhone))];
+          const inviteePhones = [...new Set(invitees.map((i) => i.invitationForPhone))];
+
+          // Combine and deduplicate all phone numbers
+          const allPhones = [...new Set([...donorPhones, ...inviteePhones])];
+
+          // Send message to each unique phone number
+          const message = `Update on campaign ${result.title},
+          alert:${result.alert};
+          message:${result.message};
+          `;
+
+          // Send messages in parallel with rate limiting
+          const sendPromises = allPhones.map((phone) =>
+               sendSMS(phone, message).catch((error) => {
+                    console.error(`Failed to send message to ${phone}:`, error);
+                    return null;
+               }),
+          );
+          await Promise.all(sendPromises);
+     }
+     return result;
 };
 
 const deleteCampaign = async (id: string): Promise<ICampaign | null> => {
@@ -98,9 +140,6 @@ const invitePeopleToCampaign = async (
      user: any, // totalDonated+,totalInvited+
      campaignId: string,
 ) => {
-     if (payload.invitationIrecievedFrom.toString() === user.id.toString()) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'You can not invite yourself.');
-     }
      const campaign = await Campaign.findById(campaignId);
      if (!campaign) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Campaign not found.Or its already reached its target amount.');
@@ -131,10 +170,6 @@ const invitePeopleToCampaign = async (
                invitationForName: invitee.invitationForName || '',
                isDonated: payload.donationAmount && payload.donationAmount > 0,
           });
-
-          if (invitee.invitationForPhone) {
-               await sendSMS(invitee.invitationForPhone, `You've been invited to join campaign "${campaign.title}". Join now!`);
-          }
      }
 
      const session = await mongoose.startSession();
@@ -152,6 +187,7 @@ const invitePeopleToCampaign = async (
                     transactionId: `INV-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
                     amountPaid: payload.donationAmount,
                     campaignId: campaign._id,
+                    campaignTitle: campaign.title,
                     paymentStatus: paymentStatusType.COMPLETED,
                };
 
@@ -224,13 +260,12 @@ const invitePeopleToCampaign = async (
                .select('_id')
                .lean();
           for (const element of admins) {
-               const notificationData = {
+               const notificationData: INotification = {
                     title: 'New Donation',
-                    referenceModel: 'Transaction' as INotification['referenceModel'],
-                    text: `New Donation from ${isExitUser.name}`,
-                    type: 'PAYMENT' as INotification['type'],
-                    receiver: element._id,
+                    referenceModel: 'PAYMENT',
                     message: `New Donation from ${isExitUser.name}`,
+                    type: 'PAYMENT',
+                    receiver: element._id,
                     read: false,
                };
 

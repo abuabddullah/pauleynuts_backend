@@ -13,6 +13,12 @@ const router = express.Router();
 router.post('/', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), validateRequest(TransactionValidation.createTransactionZodSchema), TransactionController.createTransaction);
 
 router.get('/', TransactionController.getAllTransactions);
+router.get(
+     '/user/:userId',
+     auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
+     validateRequest(TransactionValidation.getAllInvitaAndTransactionsOfUserZodSchema),
+     TransactionController.getAllInvitaAndTransactionsOfUser,
+);
 
 router.get('/unpaginated', TransactionController.getAllUnpaginatedTransactions);
 

@@ -6,6 +6,9 @@ const TransactionSchema = new Schema<ITransaction>(
           donorId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
           donorPhone: { type: String, required: true },
           paymentMethod: { type: String, required: true },
+          campaignTitle: {
+               type: String,
+          },
           transactionId: { type: String, required: true, unique: true },
           amountPaid: { type: Number, required: true },
           campaignId: { type: Schema.Types.ObjectId, ref: 'Campaign', required: true },

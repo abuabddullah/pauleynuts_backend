@@ -96,6 +96,19 @@ const sendSuccessMessage = catchAsync(async (req: Request, res: Response) => {
      });
 });
 
+// const getAllInvitaAndTransactionsOfUser
+const getAllInvitaAndTransactionsOfUser = catchAsync(async (req: Request, res: Response) => {
+     const { userId } = req.params;
+     const result = await TransactionService.getAllInvitaAndTransactionsOfUser(userId, req.query);
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Invita and transactions retrieved successfully',
+          data: result,
+     });
+});
+
 export const TransactionController = {
      createTransaction,
      getAllTransactions,
@@ -105,4 +118,5 @@ export const TransactionController = {
      hardDeleteTransaction,
      getTransactionById,
      sendSuccessMessage,
+     getAllInvitaAndTransactionsOfUser,
 };
