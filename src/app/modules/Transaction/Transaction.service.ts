@@ -88,6 +88,7 @@ const getAllInvitaAndTransactionsOfUser = async (userId: string, query: any & { 
           invitationFromPhone: isExistUser.contact!,
           page: query.iPage || 1,
           limit: query.iLimit || 10,
+          searchTerm: query.searchTerm || undefined,
      });
 
      delete query.iPage;
