@@ -9,6 +9,11 @@ export default {
      reset_pass_expire_time: process.env.RESET_TOKEN_EXPIRE_TIME,
      database_url: process.env.DATABASE_URL,
      node_env: process.env.NODE_ENV,
+     redis: {
+          host: process.env.REDIS_HOST,
+          port: Number(process.env.REDIS_PORT),
+          password: process.env.REDIS_PASSWORD,
+     },
      port: process.env.PORT,
      bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
      allowed_origins: process.env.ALLOWED_ORIGINS,

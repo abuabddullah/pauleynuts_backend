@@ -1,6 +1,7 @@
 import { Document, Model, ObjectId } from 'mongoose';
 import { UserLevel } from '../user/user.enum';
 import { progressAlertDayEnum, progressAlertFrequeincyEnum } from './content.enum';
+import { Types } from 'mongoose';
 
 export type Founder = {
      name: string;
@@ -13,8 +14,8 @@ export type UserLevelStrategy = {
      level: UserLevel;
      title: string;
      description: string;
-     benefits?: string[];
-     targetInvitation: number; //
+     benefits?: string;
+     targetInvitation: number;
      targetDonation: number;
      targetRaising: number;
 };
@@ -38,8 +39,18 @@ export interface IContent extends Document {
      founders: Founder[];
      ourMission: string;
      howWeOperate: string;
-     aboutRefugeForWomen: string;
      introduction: string;
+     foundersQuote: string;
+     // About the case Content
+     title: string;
+     subTitle: string;
+     organizationName: string;
+     established: Date;
+     network: string;
+     missionSummary: string;
+     aboutRefugeForWomen: string;
+     images: string[];
+
 
      // Statistics
      citiesServed: number;
@@ -49,18 +60,21 @@ export interface IContent extends Document {
      // User Level Strategy
      userLevelStrategy: UserLevelStrategy[];
 
+
      // cront notification Strategy ⏰
      notificationStrategy: {
           campaignExpiredAlert: boolean;
-          lowProgressWarning: boolean; // Alert when campaign is below 25% with 1 week left.
+          lowProgressWarning: boolean;
           mileStoneAlert: boolean; // true
           mileStoneAlertMessage: string;
           progressAlert: boolean; // true
           progressAlertMessage: string;
+          campingId: Types.ObjectId;
+          organizationId: Types.ObjectId[];
           progressAlertSchedule: {
                frequency: progressAlertFrequeincyEnum;
                day: progressAlertDayEnum;
-               time?: string; // optional, default 10 AM
+               time?: string;
           };
      };
 

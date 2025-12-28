@@ -6,6 +6,7 @@ import { ContentRoutes } from '../app/modules/content/content.routes';
 import { DashboardRoutes } from '../app/modules/Dashboard/dashboard.route';
 import { TransactionRoutes } from '../app/modules/Transaction/Transaction.route';
 import { InvitationHistoryRoutes } from '../app/modules/InvitationHistory/InvitationHistory.route';
+import { PrivacyPolicyRouter } from '../app/modules/Settings/SettingRoute';
 
 const router = express.Router();
 const routes = [
@@ -37,6 +38,10 @@ const routes = [
           path: '/invitation-history',
           route: InvitationHistoryRoutes,
      },
+     {
+          path: '/privacy-policy',
+          route: PrivacyPolicyRouter,
+     }
 ];
 
 routes.forEach((element) => {

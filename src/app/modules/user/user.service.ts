@@ -11,50 +11,89 @@ import generateOTP from '../../../utils/generateOTP';
 import sendSMS, { formatPhoneNumber, sendTwilioOTP } from '../../../shared/sendSMS';
 import mongoose from 'mongoose';
 import QueryBuilder from '../../builder/QueryBuilder';
-// create user
-const createUserToDB = async (payload: { name: string; contact: string; role: USER_ROLES }): Promise<IUser> => {
-     console.log('🚀 ~ createUserToDB ~ payload:', payload);
+import { UserLevel } from './user.enum';
+
+// ✅ FIXED: OTP সহ user return করুন
+const createUserToDB = async (payload: { name: string; contact: string; role: USER_ROLES }): Promise<any> => {
      const otp = generateOTP(4);
-     //save to DB
      const authentication = {
           oneTimeCode: otp,
           expireAt: new Date(Date.now() + 3 * 60000),
      };
-     const createUserDto = { ...payload, role: USER_ROLES.USER, authentication };
 
-     const session = await mongoose.startSession();
-     session.startTransaction();
-     //set role
-     const user = await User.isExistUserByContact(payload.contact);
      try {
-          let createUser;
+          const user = await User.findOneAndUpdate(
+               { contact: payload.contact },
+               {
+                    $set: {
+                         authentication,
+                         name: payload.name,
+                    },
+                    $setOnInsert: {
+                         role: USER_ROLES.USER,
+                         verified: false,
+                         status: 'active',
+                         isDeleted: false,
+                         totalLogin: 0,
+                         totalRaised: 0,
+                         totalDonated: 0,
+                         totalInvited: 0,
+                         userLevel: UserLevel.L0,
+                    }
+               },
+               {
+                    new: true,
+                    upsert: true, // ✅ এটাই magic - create or update atomically
+                    setDefaultsOnInsert: true,
+               }
+          );
 
-          if (!user) {
-               [createUser] = await User.create([createUserDto], { session });
-          } else {
-               createUser = await User.findOneAndUpdate({ _id: user._id }, { $set: { authentication } }, { new: true });
+          // Send OTP
+          await sendSMS(user!.contact!, `Your OTP is ${otp}`);
+
+          // ✅ Get user with authentication
+          const userWithAuth = await User.findById(user!._id).select('+authentication');
+
+          const userResponse: any = userWithAuth?.toObject();
+          if (userResponse?.authentication) {
+               userResponse.authentication = {
+                    oneTimeCode: userResponse.authentication.oneTimeCode,
+                    expireAt: userResponse.authentication.expireAt
+               };
           }
-          if (!createUser) {
-               throw new AppError(StatusCodes.BAD_REQUEST, 'Failed to create user');
+
+          return userResponse;
+
+     } catch (error: any) {
+          console.log('Error:', error);
+
+          // ✅ Duplicate error এলে শুধু update করুন
+          if (error.code === 11000) {
+               const existingUser = await User.findOneAndUpdate(
+                    { contact: payload.contact },
+                    { $set: { authentication, name: payload.name } },
+                    { new: true }
+               );
+
+               await sendSMS(existingUser!.contact!, `Your OTP is ${otp}`);
+
+               const userWithAuth = await User.findById(existingUser!._id).select('+authentication');
+               const userResponse: any = userWithAuth?.toObject();
+
+               if (userResponse?.authentication) {
+                    userResponse.authentication = {
+                         oneTimeCode: userResponse.authentication.oneTimeCode,
+                         expireAt: userResponse.authentication.expireAt
+                    };
+               }
+
+               return userResponse;
           }
 
-          // send sms for otp
-          await sendSMS(createUser.contact!, `Your OTP is ${otp}`);
-
-          // Commit the transaction
-          await session.commitTransaction();
-          session.endSession();
-          delete createUser.authentication;
-          return createUser;
-     } catch (error) {
-          console.log('🚀 ~ createUserToDB ~ error:', error);
-          // Abort the transaction on error
-          await session.abortTransaction();
-          session.endSession();
-
-          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'User not created.');
+          throw new AppError(StatusCodes.INTERNAL_SERVER_ERROR, 'User creation failed');
      }
 };
+
 
 // create Admin
 const createAdminToDB = async (payload: Partial<IUser>): Promise<IUser> => {

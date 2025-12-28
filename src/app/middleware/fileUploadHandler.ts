@@ -27,6 +27,12 @@ const fileUploadHandler = () => {
                     case 'image':
                          uploadDir = path.join(baseUploadDir, 'image');
                          break;
+                    case 'gallery':
+                         uploadDir = path.join(baseUploadDir, 'gallery');
+                         break;
+                    case 'founderImage':
+                         uploadDir = path.join(baseUploadDir, 'founderImage');
+                         break;
                     case 'images':
                          uploadDir = path.join(baseUploadDir, 'images');
                          break;
@@ -75,6 +81,8 @@ const fileUploadHandler = () => {
      const filterFilter = (req: Request, file: any, cb: FileFilterCallback) => {
           if (
                file.fieldname === 'image' ||
+               file.fieldname === 'gallery' ||
+               file.fieldname === 'founderImage' ||
                file.fieldname === 'images' ||
                file.fieldname === 'thumbnail' || // Added the 'thumbnail' field here
                file.fieldname === 'logo' ||
@@ -85,6 +93,8 @@ const fileUploadHandler = () => {
           ) {
                if (
                     file.fieldname === 'images/png' ||
+                    file.fieldname === 'gallery/png' ||
+                    file.fieldname === 'founderImage/png' ||
                     file.mimetype === 'images/jpg' ||
                     file.mimetype === 'images/jpeg' ||
                     file.mimetype === 'images/svg' ||
@@ -157,6 +167,8 @@ const fileUploadHandler = () => {
           fileFilter: filterFilter,
      }).fields([
           { name: 'image', maxCount: 10 },
+          { name: 'gallery', maxCount: 10 },
+          { name: 'founderImage', maxCount: 1 },
           { name: 'images', maxCount: 10 },
           { name: 'thumbnail', maxCount: 5 }, // Added this line for thumbnail
           { name: 'logo', maxCount: 5 },

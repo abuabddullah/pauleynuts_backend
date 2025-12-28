@@ -1,89 +1,98 @@
 import { z } from 'zod';
 import { progressAlertDayEnum, progressAlertFrequeincyEnum } from './content.enum';
-import { query } from 'winston';
 
 const timeRangeSchema = z.object({
      startDate: z.string().datetime().optional(),
      endDate: z.string().datetime().optional(),
 });
 
+/* Founder Schema */
 const founderSchema = z.object({
-     name: z.string({ required_error: 'Founder name is required' }),
-     role: z.string({ required_error: 'Founder role is required' }),
-     bio: z.string({ required_error: 'Founder bio is required' }),
-     image: z.string({ required_error: 'Founder image is required' }).url('Invalid image URL'),
+     name: z.string().min(1, "Founder name is required"),
+     role: z.string().min(1, "Founder role is required"),
+     bio: z.string().min(1, "Founder bio is required"),
+     image: z.string().url("Invalid founder image URL"),
 });
 
+/* User Level Strategy Schema */
 const userLevelStrategySchema = z.object({
-     level: z.string({ required_error: 'Level is required' }),
-     title: z.string({ required_error: 'Title is required' }),
-     description: z.string({ required_error: 'Description is required' }),
-     benefits: z.array(z.string()).min(1, 'At least one benefit is required').optional(),
-
-     targetInvitation: z.number({ required_error: 'Target invitation is required' }).int().min(0),
-     targetDonation: z.number({ required_error: 'Target donation is required' }).min(0),
-     targetRaising: z.number({ required_error: 'Target raising is required' }).min(0),
+     level: z.string().min(1, "Level must be at least 1"),
+     title: z.string().min(1, "Level title is required"),
+     description: z.string().min(1, "Level description is required"),
+     benefits: z.string().min(1, "At least one benefit is required"),
+     targetInvitation: z.number().int().min(0),
+     targetDonation: z.number().min(0),
+     targetRaising: z.number().min(0),
 });
 
+/* Privacy Policy Schema */
 const privacyPolicySchema = z.object({
-     whatWeCollect: z.string({ required_error: 'What we collect is required' }),
-     howWeUseIt: z.string({ required_error: 'How we use it is required' }),
-     yourAnonymity: z.string({ required_error: 'Your anonymity information is required' }),
-     whoSeesYourInfo: z.string({ required_error: 'Who sees your info is required' }),
-     security: z.string({ required_error: 'Security information is required' }),
-     yourChoices: z.string({ required_error: 'Your choices information is required' }),
+     whatWeCollect: z.string().min(1),
+     howWeUseIt: z.string().min(1),
+     yourAnonymity: z.string().min(1),
+     whoSeesYourInfo: z.string().min(1),
+     security: z.string().min(1),
+     yourChoices: z.string().min(1),
 });
 
-export const createContentValidation = z.object({
-     body: z.object({
-          // App Information
-          appName: z.string({ required_error: 'App name is required' }),
-          logo: z.string({ required_error: 'Logo URL is required' }).url('Invalid logo URL'),
-
-          // About Section
-          founders: z.array(founderSchema).min(1, 'At least one founder is required'),
-          ourMission: z.string({ required_error: 'Our mission is required' }),
-          howWeOperate: z.string({ required_error: 'How we operate is required' }),
-          aboutRefugeForWomen: z.string({ required_error: 'About Refuge for Women is required' }),
-          introduction: z.string({ required_error: 'Introduction is required' }),
-
-          // Statistics
-          citiesServed: z.number({ required_error: 'Cities served is required' }).int().min(0),
-          yearsOfOperation: z.number({ required_error: 'Years of operation is required' }).int().min(0),
-          survivorsSupported: z.number({ required_error: 'Survivors supported is required' }).int().min(0),
-
-          // User Level Strategy
-          userLevelStrategy: z.array(userLevelStrategySchema).min(1, 'At least one user level strategy is required'),
-
-          notificationStrategy: z.object({
-               campaignExpiredAlert: z.boolean(),
-               lowProgressWarning: z.boolean(),
-               mileStoneAlert: z.boolean(),
-               mileStoneAlertMessage: z.string(),
-               weeklyProgressAlert: z.boolean(),
-               weeklyProgressAlertMessage: z.string(),
-          }),
-
-          // Media
-          gallery: z.array(z.string().url('Invalid image URL')).optional(),
-
-          // Privacy Policy
-          privacyPolicy: privacyPolicySchema,
-     }),
+/* Progress Alert Schedule Schema */
+const progressAlertScheduleSchema = z.object({
+     frequency: z.nativeEnum(progressAlertFrequeincyEnum),
+     day: z.nativeEnum(progressAlertDayEnum),
+     time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)").optional(),
 });
 
-export const updateContentValidation = z.object({
+/* Notification Strategy Schema */
+const notificationStrategySchema = z.object({
+     campaignExpiredAlert: z.boolean().optional(),
+     lowProgressWarning: z.boolean().optional(),
+     mileStoneAlert: z.boolean().optional(),
+     mileStoneAlertMessage: z.string().optional(),
+     progressAlert: z.boolean().optional(),
+     progressAlertMessage: z.string().optional(),
+     progressAlertSchedule: progressAlertScheduleSchema.optional(),
+     campingId: z.string().optional(),
+     organizationId: z.array(z.string()).optional(),
+});
+
+/* PUT Validation (Create or Update) */
+export const upsertContentValidation = z.object({
      body: z.object({
-          // App Information
-          appName: z.string().optional(),
-          logo: z.string().url('Invalid logo URL').optional(),
+          // App Info
+          appName: z.string().min(1, "App name is required").optional(),
+          logo: z.string().url("Invalid logo URL").optional(),
+          type: z.string().optional(),
+
+          // Founders
+          founders: z.array(founderSchema).min(1, "At least one founder is required").optional(),
 
           // About Section
-          founders: z.array(founderSchema).min(1, 'At least one founder is required').optional(),
-          ourMission: z.string().optional(),
-          howWeOperate: z.string().optional(),
-          aboutRefugeForWomen: z.string().optional(),
-          introduction: z.string().optional(),
+          introduction: z.string().min(1).optional(),
+          ourMission: z.string().min(1).optional(),
+          howWeOperate: z.string().min(1).optional(),
+          aboutRefugeForWomen: z.string().min(1).optional(),
+          network: z.string().min(1).optional(),
+          missionSummary: z.string().min(1).optional(),
+          foundersQuote: z.string().min(1).optional(),
+
+          // Optional UI Content
+          title: z.string().min(1).optional(),
+          subTitle: z.string().min(1).optional(),
+          organizationName: z.string().min(1).optional(),
+
+          // Date
+          established: z.string().datetime("Invalid date format").optional(),
+
+          // Images
+          images: z.array(z.string().url("Invalid image URL")).optional(),
+          gallery: z.array(z.string().url("Invalid gallery image URL")).optional(),
+          campaignExpiredAlert: z.boolean().optional(),
+          lowProgressWarning: z.boolean().optional(),
+          mileStoneAlert: z.boolean().optional(),
+          mileStoneAlertMessage: z.string().optional(),
+          progressAlert: z.boolean().optional(),
+          progressAlertMessage: z.string().optional(),
+          progressAlertSchedule: progressAlertScheduleSchema.optional(),
 
           // Statistics
           citiesServed: z.number().int().min(0).optional(),
@@ -91,21 +100,10 @@ export const updateContentValidation = z.object({
           survivorsSupported: z.number().int().min(0).optional(),
 
           // User Level Strategy
-          userLevelStrategy: z.array(userLevelStrategySchema).min(1, 'At least one user level strategy is required').optional(),
+          userLevelStrategy: z.array(userLevelStrategySchema).min(1, "At least one user level strategy is required").optional(),
 
-          notificationStrategy: z
-               .object({
-                    campaignExpiredAlert: z.boolean().optional(),
-                    lowProgressWarning: z.boolean().optional(),
-                    mileStoneAlert: z.boolean().optional(),
-                    mileStoneAlertMessage: z.string().optional(),
-                    weeklyProgressAlert: z.boolean().optional(),
-                    weeklyProgressAlertMessage: z.string().optional(),
-               })
-               .optional(),
-
-          // Media
-          gallery: z.array(z.string().url('Invalid image URL')).optional(),
+          // Notification Strategy
+          notificationStrategy: notificationStrategySchema.optional(),
 
           // Privacy Policy
           privacyPolicy: privacyPolicySchema.optional(),
@@ -140,8 +138,7 @@ export const timeRangeQuerySchema = z.object({
 
 // Export all validations
 export const ContentValidation = {
-     createContentValidation,
-     updateContentValidation,
+     upsertContentValidation,
      timeRangeSchema,
      timeRangeQuerySchema,
 };

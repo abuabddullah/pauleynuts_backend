@@ -15,6 +15,8 @@ import { verifyToken } from '../../../utils/verifyToken';
 import { createToken } from '../../../utils/createToken';
 import mongoose from 'mongoose';
 import sendSMS from '../../../shared/sendSMS';
+import { Campaign } from '../campaign/campaign.model';
+import { getCampaignId } from './getCampingId';
 
 //login
 const loginUserFromDB = async (payload: ILoginData) => {
@@ -64,7 +66,14 @@ const loginUserFromDB = async (payload: ILoginData) => {
      const accessToken = jwtHelper.createToken(jwtData, config.jwt.jwt_secret as Secret, config.jwt.jwt_expire_in as string);
      const refreshToken = jwtHelper.createToken(jwtData, config.jwt.jwt_refresh_secret as string, config.jwt.jwt_refresh_expire_in as string);
 
-     return { accessToken, refreshToken };
+
+     const campaign = await getCampaignId(isExistUser._id);
+
+     if (campaign) {
+          return { accessToken, refreshToken, campaignId: campaign?._id };
+     } else {
+          return { accessToken, refreshToken };
+     }
 };
 
 //forget password
@@ -165,56 +174,145 @@ const forgetPasswordByUrlToDB = async (email: string) => {
      await emailHelper.sendEmail(forgetPasswordEmail);
 };
 
-//verify email
+
 const verifyContactToDB = async (payload: IVerifyContact) => {
      const { contact, oneTimeCode, email } = payload;
+
+     // Find user
      let isExistUser;
      if (payload.isForLogin) {
           isExistUser = await User.findOne({ contact }).select('+authentication');
      } else {
           isExistUser = await User.findOne({ email }).select('+authentication');
      }
+
      if (!isExistUser) {
           throw new AppError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
      }
 
+     // Validate OTP
      if (!oneTimeCode) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Please give the otp, check your email or contact we send a code');
+          throw new AppError(
+               StatusCodes.BAD_REQUEST,
+               'Please provide the OTP. Check your email or contact for the code.'
+          );
      }
 
      if (isExistUser.authentication?.oneTimeCode !== oneTimeCode) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'You provided wrong otp');
+          throw new AppError(StatusCodes.BAD_REQUEST, 'Invalid OTP provided!');
      }
 
-     const date = new Date();
-     if (date > isExistUser.authentication?.expireAt) {
-          throw new AppError(StatusCodes.BAD_REQUEST, 'Otp already expired, Please try again');
+     // Check OTP expiration
+     const currentDate = new Date();
+     if (!isExistUser.authentication?.expireAt || currentDate > isExistUser.authentication.expireAt) {
+          await User.findByIdAndUpdate(isExistUser._id, {
+               $set: {
+                    'authentication.oneTimeCode': null,
+                    'authentication.expireAt': null
+               }
+          });
+          throw new AppError(StatusCodes.BAD_REQUEST, 'OTP has expired. Please request a new one.');
      }
 
      let message;
      let verifyToken;
      let accessToken;
      let user;
+
+     // ✅ Handle verification based on scenario
      if (!isExistUser.verified || payload.isForLogin) {
-          await User.findOneAndUpdate({ _id: isExistUser._id }, { verified: true, authentication: { oneTimeCode: null, expireAt: null } });
-          //create token
+          // Scenario 1: First time verification OR Login verification
+
+          // ✅ Increment totalLogin if it's a login
+          if (payload.isForLogin) {
+               await User.findOneAndUpdate(
+                    { _id: isExistUser._id },
+                    {
+                         verified: true,
+                         authentication: {
+                              oneTimeCode: null,
+                              expireAt: null
+                         },
+                         $inc: { totalLogin: 1 }
+                    }
+               );
+          } else {
+               await User.findOneAndUpdate(
+                    { _id: isExistUser._id },
+                    {
+                         verified: true,
+                         authentication: {
+                              oneTimeCode: null,
+                              expireAt: null
+                         }
+                    }
+               );
+          }
+
+          // Create access token
           accessToken = jwtHelper.createToken(
-               { id: isExistUser._id, role: isExistUser.role, email: isExistUser.email, contact: isExistUser.contact },
+               {
+                    id: isExistUser._id,
+                    role: isExistUser.role,
+                    email: isExistUser.email,
+                    contact: isExistUser.contact
+               },
                config.jwt.jwt_secret as Secret,
                config.jwt.jwt_expire_in as string,
           );
-          message = payload.isForLogin ? 'Login successfull' : 'Contact verification successfull';
-          user = await User.findById(isExistUser._id);
-     } else {
-          await User.findOneAndUpdate({ _id: isExistUser._id }, { authentication: { isResetPassword: true, oneTimeCode: null, expireAt: null } });
 
-          //create token ;
+          message = payload.isForLogin
+               ? 'Login successful'
+               : 'Contact verification successful';
+
+          user = await User.findById(isExistUser._id);
+
+          // ✅ Check for campaign
+          const campaign = await getCampaignId(isExistUser._id);
+
+          const response: any = {
+               isVerified: true,
+               message,
+               accessToken,
+               user // ✅ totalLogin included
+          };
+
+          if (campaign) {
+               response.campaignId = campaign._id;
+          }
+
+          return response;
+
+     } else {
+          // Scenario 2: Password reset verification
+          await User.findOneAndUpdate(
+               { _id: isExistUser._id },
+               {
+                    authentication: {
+                         isResetPassword: true,
+                         oneTimeCode: null,
+                         expireAt: null
+                    }
+               }
+          );
+
+          // Create reset token
           const createToken = cryptoToken();
-          await ResetToken.create({ user: isExistUser._id, token: createToken, expireAt: new Date(Date.now() + 5 * 60000) });
-          message = 'Verification Successful: Please securely store and utilize this code for reset password';
+          await ResetToken.create({
+               user: isExistUser._id,
+               token: createToken,
+               expireAt: new Date(Date.now() + 5 * 60000)
+          });
+
+          message = 'Verification successful. Please use this token to reset your password.';
           verifyToken = createToken;
+
+          return {
+               isVerified: true,
+               verifyToken,
+               message
+          };
      }
-     return { verifyToken, message, accessToken, user };
 };
 
 //reset password

@@ -24,6 +24,7 @@ export type IUser = {
      totalRaised: number;
      totalDonated: number;
      totalInvited: number;
+     totalLogin: number;
 };
 
 export type UserModel = {

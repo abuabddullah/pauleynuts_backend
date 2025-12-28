@@ -11,7 +11,15 @@ const verifyContact = catchAsync(async (req, res) => {
      const { ...verifyData } = req.body;
      const result = await AuthService.verifyContactToDB(verifyData);
 
-     sendResponse(res, { success: true, statusCode: StatusCodes.OK, message: result.message, data: { verifyToken: result.verifyToken, accessToken: result.accessToken, isVerified: true } });
+     sendResponse(res, {
+          success: true, statusCode: StatusCodes.OK, message: result.message,
+          data: {
+               verifyToken: result.verifyToken,
+               accessToken: result.accessToken,
+               isVerified: true, campaignId: result.campaignId,
+               totalLogin: result.user.totalLogin
+          }
+     });
 });
 
 const loginUser = catchAsync(async (req, res) => {
@@ -22,7 +30,7 @@ const loginUser = catchAsync(async (req, res) => {
      if (config.node_env === 'production') {
           cookieOptions.sameSite = 'none';
      }
-     sendResponse(res, { success: true, statusCode: StatusCodes.OK, message: 'User logged in successfully.', data: { accessToken: result.accessToken, refreshToken: result.refreshToken } });
+     sendResponse(res, { success: true, statusCode: StatusCodes.OK, message: 'User logged in successfully.', data: { accessToken: result.accessToken, refreshToken: result.refreshToken, campaignId: result.campaignId } });
 });
 
 const forgetPassword = catchAsync(async (req, res) => {

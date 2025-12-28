@@ -47,9 +47,8 @@ router.patch(
      // validateRequest(campaignValidation.updateCampaignZodSchema),
      campaignController.updateCampaign,
 );
-
+router.get('/:id', campaignController.getCampaignById);
 router.delete('/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), campaignController.deleteCampaign);
 
-router.get('/:id', campaignController.getCampaignById);
 
 export const campaignRoutes = router;

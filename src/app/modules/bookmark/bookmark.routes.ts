@@ -5,7 +5,7 @@ import auth from '../../middleware/auth';
 
 const router = express.Router();
 
-router.get('/', auth(USER_ROLES.USER), BookmarkController.getBookmark);
-router.post('/:id', auth(USER_ROLES.USER), BookmarkController.toggleBookmark);
+router.get('/', auth(USER_ROLES.USER, USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), BookmarkController.getBookmark);
+router.post('/:id', auth(USER_ROLES.USER, USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN), BookmarkController.toggleBookmark);
 
 export const BookmarkRoutes = router;

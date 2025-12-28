@@ -10,6 +10,7 @@ import { socketHelper } from './helpers/socketHelper';
 import { setupProcessHandlers } from './DB/processHandlers';
 import { setupSecurity } from './DB/security';
 import { setupCluster } from './DB/cluster';
+import { startNotificationWorker } from './app/modules/content/notificationWorker';
 
 // Define the types for the servers
 let httpServer: HttpServer;
@@ -26,7 +27,7 @@ export async function startServer() {
           httpServer = createServer(app);
           const httpPort = Number(config.port);
           const ipAddress = config.ip_address as string;
-  
+
 
           // Set timeouts
           httpServer.timeout = 120000;
@@ -46,6 +47,7 @@ export async function startServer() {
           });
 
           socketHelper.socket(socketServer);
+          startNotificationWorker();
           //@ts-ignore
           global.io = socketServer;
           logger.info(colors.yellow(`♻️  Socket is listening on same port ${httpPort}`));

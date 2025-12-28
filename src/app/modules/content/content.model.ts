@@ -5,10 +5,10 @@ import { progressAlertDayEnum, progressAlertFrequeincyEnum } from './content.enu
 
 const founderSchema = new Schema(
      {
-          name: { type: String, required: true },
-          role: { type: String, required: true },
-          bio: { type: String, required: true },
-          image: { type: String, required: true },
+          name: { type: String },
+          role: { type: String },
+          bio: { type: String },
+          image: { type: String },
      },
      { _id: false },
 );
@@ -18,7 +18,7 @@ const userLevelStrategySchema = new Schema(
           level: { type: String, required: true, enum: Object.values(UserLevel) },
           title: { type: String, required: true },
           description: { type: String, required: true },
-          benefits: [{ type: String }],
+          benefits: { type: String },
           targetInvitation: { type: Number, required: true },
           targetDonation: { type: Number, required: true },
           targetRaising: { type: Number, required: true },
@@ -49,28 +49,37 @@ const contentSchema = new Schema<IContent, ContentModel>(
           founders: [founderSchema],
           ourMission: { type: String, required: true },
           howWeOperate: { type: String, required: true },
-          aboutRefugeForWomen: { type: String, required: true },
           introduction: { type: String, required: true },
+          // about the case
+          title: { type: String, required: true },
+          subTitle: { type: String, required: true },
+          organizationName: { type: String, required: true },
+          established: { type: Date, required: true },
+          network: { type: String, required: true },
+          missionSummary: { type: String, required: true },
+          aboutRefugeForWomen: { type: String, required: true },
+          foundersQuote: { type: String, required: true },
+          images: [{ type: String }],
 
           // Statistics
-          citiesServed: { type: Number, required: true },
-          yearsOfOperation: { type: Number, required: true },
-          survivorsSupported: { type: Number, required: true },
+          citiesServed: { type: Number },
+          yearsOfOperation: { type: Number },
+          survivorsSupported: { type: Number },
 
           // User Level Strategy
           userLevelStrategy: [userLevelStrategySchema],
 
           // notificationStrategy
           notificationStrategy: {
-               campaignExpiredAlert: Boolean,
-               lowProgressWarning: Boolean,
-               mileStoneAlert: Boolean,
-               mileStoneAlertMessage: String,
-               progressAlert: Boolean,
-               progressAlertMessage: String,
+               campaignExpiredAlert: { type: Boolean, default: true },
+               lowProgressWarning: { type: Boolean, default: true },
+               mileStoneAlert: { type: Boolean, default: true },
+               mileStoneAlertMessage: { type: String, default: 'Campaign Milestone Alert' },
+               progressAlert: { type: Boolean, default: true },
+               progressAlertMessage: { type: String, default: 'Campaign Progress Alert' },
                progressAlertSchedule: {
-                    frequency: { type: String, enum: Object.values(progressAlertFrequeincyEnum), required: true },
-                    day: { type: String, enum: Object.values(progressAlertDayEnum), required: true },
+                    frequency: { type: String, enum: Object.values(progressAlertFrequeincyEnum) },
+                    day: { type: String, enum: Object.values(progressAlertDayEnum) },
                     time: { type: String, default: '10:00' },
                },
           },

@@ -3,4 +3,5 @@ export enum CampaignStatus {
      UPCOMING = 'upcoming',
      COMPLETED = 'completed',
      CANCELLED = 'cancelled',
+     EXPIRED = 'expired',
 }
