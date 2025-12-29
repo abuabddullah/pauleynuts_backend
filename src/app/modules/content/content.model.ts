@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import { Schema, Types, model } from 'mongoose';
 import { IContent, ContentModel } from './content.interface';
 import { UserLevel } from '../user/user.enum';
 import { progressAlertDayEnum, progressAlertFrequeincyEnum } from './content.enum';
@@ -66,6 +66,7 @@ const contentSchema = new Schema<IContent, ContentModel>(
           yearsOfOperation: { type: Number },
           survivorsSupported: { type: Number },
 
+
           // User Level Strategy
           userLevelStrategy: [userLevelStrategySchema],
 
@@ -82,13 +83,11 @@ const contentSchema = new Schema<IContent, ContentModel>(
                     day: { type: String, enum: Object.values(progressAlertDayEnum) },
                     time: { type: String, default: '10:00' },
                },
+               campaignId: { type: Schema.Types.ObjectId, ref: 'Campaign' },
           },
 
           // Media
           gallery: [{ type: String }],
-
-          // Privacy Policy
-          privacyPolicy: { type: privacyPolicySchema, required: true },
      },
      {
           timestamps: true,

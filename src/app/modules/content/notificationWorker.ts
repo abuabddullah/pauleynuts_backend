@@ -4,13 +4,33 @@ import { Campaign } from '../campaign/campaign.model';
 import { Content } from './content.model';
 import { scheduleQueue } from '../../../utils/scheduleQueue';
 import redisConnection from '../../../config/redis';
+import sendSMS from '../../../shared/sendSMS';
+import { Types } from 'mongoose';
+import { query } from 'winston';
+import { CampaignStatus } from '../campaign/campaign.enum';
 
+
+// notificationWorker.ts
 
 export const startNotificationWorker = () => {
     const worker = new Worker(
         'scheduleQueue',
         async (job: Job) => {
-            console.log(`📬 Processing: ${job.name}`);
+            const now = new Date();
+            // console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            // console.log(`⏰ JOB TRIGGERED AT: ${now.toLocaleString('en-US', {
+            //     timeZone: 'Asia/Dhaka',
+            //     year: 'numeric',
+            //     month: 'long',
+            //     day: 'numeric',
+            //     hour: '2-digit',
+            //     minute: '2-digit',
+            //     second: '2-digit'
+            // })}`);
+            // console.log(`📬 Processing Job: ${job.name}`);
+            // console.log(`🆔 Job ID: ${job.id}`);
+            // console.log(`📊 Job Data:`, JSON.stringify(job.data, null, 2));
+            // console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
             try {
                 switch (job.name) {
@@ -33,9 +53,12 @@ export const startNotificationWorker = () => {
                     default:
                         console.log(`❓ Unknown job: ${job.name}`);
                 }
+
+                console.log(`✅ Job ${job.name} completed successfully at ${new Date().toLocaleTimeString()}`);
+
             } catch (error) {
                 console.error(`❌ Job ${job.name} failed:`, error);
-                throw error; // Re-throw for retry
+                throw error;
             }
         },
         {
@@ -45,53 +68,140 @@ export const startNotificationWorker = () => {
     );
 
     worker.on('completed', (job) => {
-        console.log(`✅ Job ${job.id} completed`);
+        console.log(`✅✅✅ Job ${job.id} (${job.name}) COMPLETED at ${new Date().toLocaleString()}`);
     });
 
     worker.on('failed', (job, err) => {
-        console.error(`❌ Job ${job?.id} failed:`, err.message);
+        console.error(`❌❌❌ Job ${job?.id} (${job?.name}) FAILED at ${new Date().toLocaleString()}:`, err.message);
     });
 
-    console.log('🔄 Notification worker started');
+    console.log('🔄 Notification worker started and listening...');
     return worker;
 };
 
 // ============ Handlers ============
 
-async function handleProgressAlert(data: any) {
-    const { message, campingId, organizationId } = data;
+// async function handleProgressAlert(data: any) {
+//     const { message, campaignId } = data;
+//     console.log('🚀 ~ handleProgressAlert ~ campaignId:', campaignId);
 
-    // Build query based on what's selected
+//     // Build query based on what's selected
+//     const query: any = {
+//         status: 'active',
+//         endDate: { $gt: new Date() }
+//     };
+
+//     // If specific campaign selected
+//     if (campaignId) {
+//         query._id = new Types.ObjectId(campaignId);
+//     }
+
+//     console.log("QUERY", query)
+
+
+//     const campaigns = await Campaign.find(query);
+
+//     console.log('🚀 ~ handleProgressAlert ~ campaigns:', campaigns);
+//     console.log('🚀 ~ handleProgressAlert ~ message:', message);
+
+
+//     for (const campaign of campaigns) {
+//         const progress = (campaign?.currentAmount / campaign?.goalAmount) * 100;
+
+//         const finalMessage = message.replace('{progress}', progress.toFixed(1));
+//         if (campaign.contactPerson_phone) {
+//             try {
+//                 await sendSMS(campaign.contactPerson_phone, finalMessage);
+//                 console.log(`📲 SMS sent to ${campaign.contactPerson_phone}: ${finalMessage}`);
+//             } catch (error) {
+//                 console.error(`❌ Failed to send SMS to ${campaign.contactPerson_phone}:`, error);
+//             }
+//         } else {
+//             console.log(`⚠️ No contact phone for campaign: ${campaign.title}`);
+//         }
+
+//         await sendNotifications({
+//             userId: campaign.createdBy._id,
+//             type: 'PROGRESS_ALERT',
+//             title: 'Campaign Progress Update',
+//             message: message.replace('{progress}', progress.toFixed(1)),
+//             data: { campaignId: campaign._id }
+//         });
+//     }
+
+//     console.log(`📊 Sent ${campaigns.length} progress alerts`);
+// }
+async function handleProgressAlert(data: any) {
+    const { message, campaignId } = data;
+
+    // 🔹 Build base query
     const query: any = {
-        status: 'active',
-        endDate: { $gt: new Date() }
+        campaignStatus: CampaignStatus.ACTIVE,
+        endDate: { $gt: new Date() },
+        isDeleted: false,
     };
 
-    // If specific campaign selected
-    if (campingId) {
-        query._id = campingId;
+    // 🔹 If specific campaign selected
+    if (campaignId) {
+        if (!Types.ObjectId.isValid(campaignId)) {
+            return;
+        }
+        query._id = new Types.ObjectId(campaignId);
     }
 
-    // If specific organizations selected
-    if (organizationId && organizationId.length > 0) {
-        query.createdBy = { $in: organizationId };
-    }
 
+    // 🔹 Fetch campaigns
     const campaigns = await Campaign.find(query).populate('createdBy');
 
-    for (const campaign of campaigns) {
-        const progress = (campaign?.currentAmount / campaign?.goalAmount) * 100;
-
-        await sendNotifications({
-            userId: campaign.createdBy._id,
-            type: 'PROGRESS_ALERT',
-            title: 'Campaign Progress Update',
-            message: message.replace('{progress}', progress.toFixed(1)),
-            data: { campaignId: campaign._id }
-        });
+    if (!campaigns.length) {
+        return;
     }
 
-    console.log(`📊 Sent ${campaigns.length} progress alerts`);
+    // 🔹 Loop through campaigns
+    for (const campaign of campaigns) {
+        if (!campaign.targetAmount || !campaign.overall_raised) {
+            continue;
+        }
+
+        // ✅ Correct progress calculation
+        const progress =
+            (campaign.overall_raised / campaign.targetAmount) * 100;
+
+        const finalMessage = message.replace(
+            '{progress}',
+            progress.toFixed(1)
+        );
+
+        // 🔹 Send SMS
+        if (campaign.contactPerson_phone) {
+            try {
+                await sendSMS(campaign.contactPerson_phone, finalMessage);
+            } catch (error) {
+                console.error(
+                    `❌ Failed to send SMS to ${campaign.contactPerson_phone}:`,
+                    error
+                );
+            }
+        } else {
+            console.log(`⚠️ No contact phone for campaign: ${campaign.title}`);
+        }
+
+        // 🔹 Send in-app notification
+        if (campaign.createdBy?._id) {
+            await sendNotifications({
+                userId: campaign.createdBy._id,
+                type: 'PROGRESS_ALERT',
+                title: 'Campaign Progress Update',
+                message: finalMessage,
+                data: {
+                    campaignId: campaign._id,
+                    progress: progress.toFixed(1),
+                },
+            });
+        }
+    }
+
+    console.log(`✅ Sent progress alerts for ${campaigns.length} campaign(s)`);
 }
 
 async function handleLowProgressWarning() {
@@ -99,7 +209,7 @@ async function handleLowProgressWarning() {
     oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
 
     const campaigns = await Campaign.find({
-        status: 'active',
+        campaignStatus: 'active',
         endDate: {
             $gte: new Date(),
             $lte: oneWeekFromNow

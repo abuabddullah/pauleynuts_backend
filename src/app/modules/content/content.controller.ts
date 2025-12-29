@@ -3,31 +3,9 @@ import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { ContentService } from './content.service';
 import { StatusCodes } from 'http-status-codes';
-import { Content } from './content.model';
 
-// const createContent = catchAsync(async (req: Request, res: Response) => {
-//      const { ...contentData } = req.body;
-//      const result = await ContentService.createContent(contentData);
 
-//      sendResponse(res, {
-//           statusCode: StatusCodes.CREATED,
-//           success: true,
-//           message: 'Content created successfully',
-//           data: result,
-//      });
-// });
 
-// const updateContent = catchAsync(async (req: Request, res: Response) => {
-//      const { ...contentData } = req.body;
-//      const result = await ContentService.updateContent(contentData);
-
-//      sendResponse(res, {
-//           statusCode: StatusCodes.OK,
-//           success: true,
-//           message: 'Content updated successfully',
-//           data: result,
-//      });
-// });
 const upsertContent = catchAsync(async (req: Request, res: Response) => {
      console.log("files", req.files);
      const files = req.files as any;

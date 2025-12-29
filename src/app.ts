@@ -9,7 +9,7 @@ import { welcome } from './utils/welcome';
 import config from './config';
 import path from 'path';
 import passport from './config/passport';
-import setupTimeManagement from './utils/crons/cronJobs';
+// import setupTimeManagement from './utils/crons/cronJobs';
 
 const app: Application = express();
 
@@ -63,5 +63,5 @@ app.use(globalErrorHandler);
 
 //handle not found route;
 app.use(notFound);
-setupTimeManagement();
+// setupTimeManagement();
 export default app;

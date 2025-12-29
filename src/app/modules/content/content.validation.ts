@@ -51,8 +51,10 @@ const notificationStrategySchema = z.object({
      progressAlert: z.boolean().optional(),
      progressAlertMessage: z.string().optional(),
      progressAlertSchedule: progressAlertScheduleSchema.optional(),
-     campingId: z.string().optional(),
-     organizationId: z.array(z.string()).optional(),
+     campaignId: z
+          .string()
+          .regex(/^[0-9a-fA-F]{24}$/, 'Invalid Campaign ID')
+          .optional(),
 });
 
 /* PUT Validation (Create or Update) */
@@ -86,13 +88,13 @@ export const upsertContentValidation = z.object({
           // Images
           images: z.array(z.string().url("Invalid image URL")).optional(),
           gallery: z.array(z.string().url("Invalid gallery image URL")).optional(),
-          campaignExpiredAlert: z.boolean().optional(),
-          lowProgressWarning: z.boolean().optional(),
-          mileStoneAlert: z.boolean().optional(),
-          mileStoneAlertMessage: z.string().optional(),
-          progressAlert: z.boolean().optional(),
-          progressAlertMessage: z.string().optional(),
-          progressAlertSchedule: progressAlertScheduleSchema.optional(),
+          // campaignExpiredAlert: z.boolean().optional(),
+          // lowProgressWarning: z.boolean().optional(),
+          // mileStoneAlert: z.boolean().optional(),
+          // mileStoneAlertMessage: z.string().optional(),
+          // progressAlert: z.boolean().optional(),
+          // progressAlertMessage: z.string().optional(),
+          // progressAlertSchedule: progressAlertScheduleSchema.optional(),
 
           // Statistics
           citiesServed: z.number().int().min(0).optional(),
@@ -103,6 +105,8 @@ export const upsertContentValidation = z.object({
           userLevelStrategy: z.array(userLevelStrategySchema).min(1, "At least one user level strategy is required").optional(),
 
           // Notification Strategy
+
+
           notificationStrategy: notificationStrategySchema.optional(),
 
           // Privacy Policy

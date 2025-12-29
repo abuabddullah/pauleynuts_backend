@@ -69,13 +69,12 @@ export interface IContent extends Document {
           mileStoneAlertMessage: string;
           progressAlert: boolean; // true
           progressAlertMessage: string;
-          campingId: Types.ObjectId;
-          organizationId: Types.ObjectId[];
           progressAlertSchedule: {
                frequency: progressAlertFrequeincyEnum;
                day: progressAlertDayEnum;
                time?: string;
           };
+          campaignId: Types.ObjectId;
      };
 
      // Media

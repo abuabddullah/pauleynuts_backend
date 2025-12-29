@@ -9,6 +9,7 @@ import { Transaction } from '../Transaction/Transaction.model';
 import { InvitationHistory } from '../InvitationHistory/InvitationHistory.model';
 import { progressAlertDayEnum, progressAlertFrequeincyEnum } from './content.enum';
 import { scheduleQueue } from '../../../utils/scheduleQueue';
+import { getNextCronTime, getTimeUntil } from '../../../helpers/nextCron';
 
 const getContent = async () => {
      const result = await Content.findOne();
@@ -117,9 +118,20 @@ async function addProgressAlertJob(
      let cronExpression: string;
 
      if (frequency === progressAlertFrequeincyEnum.weekly) {
+          // Weekly: প্রতি সপ্তাহে নির্দিষ্ট দিনে
           const dayNumber = getDayNumber(day!);
           cronExpression = `${minute} ${hour} * * ${dayNumber}`;
+
+     } else if (frequency === progressAlertFrequeincyEnum.monthly) {
+          // ✅ Monthly: প্রতি মাসের 1 তারিখে
+          cronExpression = `${minute} ${hour} 1 * *`;
+
+     } else if (frequency === progressAlertFrequeincyEnum.biweekly) {
+          // Bi-weekly: মাসের 1 এবং 15 তারিখে
+          cronExpression = `${minute} ${hour} 1,15 * *`;
+
      } else {
+          // Default: Bi-weekly
           cronExpression = `${minute} ${hour} 1,15 * *`;
      }
 
@@ -128,8 +140,7 @@ async function addProgressAlertJob(
           {
                message: notificationStrategy.progressAlertMessage,
                frequency,
-               campingId: notificationStrategy.campingId, // ✅ Add this
-               organizationId: notificationStrategy.organizationId // ✅ Add this
+               campaignId: notificationStrategy.campaignId
           },
           {
                repeat: {
@@ -139,39 +150,67 @@ async function addProgressAlertJob(
           }
      );
 
+     const nextRunTime = getNextCronTime(cronExpression);
      console.log(`📅 Progress Alert scheduled: ${cronExpression}`);
+     console.log(`⏰ Next run: ${nextRunTime.toLocaleString('en-US', {
+          timeZone: 'Asia/Dhaka',
+          dateStyle: 'full',
+          timeStyle: 'long'
+     })}`);
+     console.log(`⏱️ Time until next run: ${getTimeUntil(nextRunTime)}`);
 }
 
 // ============ Low Progress Warning Job ============
 async function addLowProgressWarningJob() {
+     const cronExpression = '0 10 * * *';
+
      await scheduleQueue.add(
           'checkLowProgress',
           {},
           {
                repeat: {
-                    pattern: '0 10 * * *' // Daily at 10 AM
+                    pattern: cronExpression
                },
                jobId: 'low-progress-warning-job'
           }
      );
 
+     // ✅ Log next run time
+     const nextRunTime = getNextCronTime(cronExpression);
      console.log('⚠️ Low Progress Warning scheduled: Daily at 10 AM');
+     console.log(`⏰ Next run: ${nextRunTime.toLocaleString('en-US', {
+          timeZone: 'Asia/Dhaka',
+          dateStyle: 'full',
+          timeStyle: 'long'
+     })}`);
+     console.log(`⏱️ Time until next run: ${getTimeUntil(nextRunTime)}`);
 }
 
+
 // ============ Campaign Expired Alert Job ============
+
 async function addCampaignExpiredAlertJob() {
+     const cronExpression = '0 8 * * *';
      await scheduleQueue.add(
           'checkExpiredCampaigns',
           {},
           {
                repeat: {
-                    pattern: '0 8 * * *' // Daily at 8 AM
+                    pattern: cronExpression
                },
                jobId: 'campaign-expired-alert-job'
           }
      );
 
+     // ✅ Log next run time
+     const nextRunTime = getNextCronTime(cronExpression);
      console.log('⏰ Campaign Expired Alert scheduled: Daily at 8 AM');
+     console.log(`⏰ Next run: ${nextRunTime.toLocaleString('en-US', {
+          timeZone: 'Asia/Dhaka',
+          dateStyle: 'full',
+          timeStyle: 'long'
+     })}`);
+     console.log(`⏱️ Time until next run: ${getTimeUntil(nextRunTime)}`);
 }
 
 // ============ Remove Old Jobs ============
