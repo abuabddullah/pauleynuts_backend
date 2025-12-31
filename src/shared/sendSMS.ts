@@ -66,6 +66,9 @@ const sendSMS = async (to: string, message: string) => {
      console.log({ to, message });
      // const formattedNumber = formatPhoneNumber(to);
      const formattedNumber = formatPhoneNumber('+8801783323358');
+
+     console.log('Formatted number:', formattedNumber);
+
      try {
           const twilioSendSmsResult = await twilioClient.messages.create({
                body: message,
