@@ -64,9 +64,8 @@ export const verifyTwilioOTP = async (mobileNumber: string, otpCode: string): Pr
 
 const sendSMS = async (to: string, message: string) => {
      console.log({ to, message });
-     const toNum = to.toString();
-     const formattedNumber = formatPhoneNumber(toNum);
-     // const formattedNumber = formatPhoneNumber('+8801939032974');
+     // const formattedNumber = formatPhoneNumber(to);
+     const formattedNumber = formatPhoneNumber('+8801783323358');
      try {
           const twilioSendSmsResult = await twilioClient.messages.create({
                body: message,
