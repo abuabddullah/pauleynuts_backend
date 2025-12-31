@@ -1,7 +1,8 @@
 import cron from 'node-cron';
 import { Content } from '../../app/modules/content/content.model';
-import { getCronExpression, sendSMS } from './cron.util';
+import { getCronExpression } from './cron.util';
 import { Campaign } from '../../app/modules/campaign/campaign.model';
+import sendSMS from '../../shared/sendSMS';
 
 let lastSentAt: Date | null = null;
 

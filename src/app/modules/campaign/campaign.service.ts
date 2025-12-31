@@ -70,7 +70,7 @@ const updateCampaign = async (id: string, payload: Partial<ICampaign & { image?:
           const transactions = await Transaction.find({
                campaignId: id,
                isDeleted: false,
-               paymentStatus: 'completed', // Only include successful transactions
+               paymentStatus: 'completed',
           })
                .select('donorPhone')
                .lean();

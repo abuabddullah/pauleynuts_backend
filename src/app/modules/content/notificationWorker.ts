@@ -80,57 +80,6 @@ export const startNotificationWorker = () => {
 };
 
 // ============ Handlers ============
-
-// async function handleProgressAlert(data: any) {
-//     const { message, campaignId } = data;
-//     console.log('🚀 ~ handleProgressAlert ~ campaignId:', campaignId);
-
-//     // Build query based on what's selected
-//     const query: any = {
-//         status: 'active',
-//         endDate: { $gt: new Date() }
-//     };
-
-//     // If specific campaign selected
-//     if (campaignId) {
-//         query._id = new Types.ObjectId(campaignId);
-//     }
-
-//     console.log("QUERY", query)
-
-
-//     const campaigns = await Campaign.find(query);
-
-//     console.log('🚀 ~ handleProgressAlert ~ campaigns:', campaigns);
-//     console.log('🚀 ~ handleProgressAlert ~ message:', message);
-
-
-//     for (const campaign of campaigns) {
-//         const progress = (campaign?.currentAmount / campaign?.goalAmount) * 100;
-
-//         const finalMessage = message.replace('{progress}', progress.toFixed(1));
-//         if (campaign.contactPerson_phone) {
-//             try {
-//                 await sendSMS(campaign.contactPerson_phone, finalMessage);
-//                 console.log(`📲 SMS sent to ${campaign.contactPerson_phone}: ${finalMessage}`);
-//             } catch (error) {
-//                 console.error(`❌ Failed to send SMS to ${campaign.contactPerson_phone}:`, error);
-//             }
-//         } else {
-//             console.log(`⚠️ No contact phone for campaign: ${campaign.title}`);
-//         }
-
-//         await sendNotifications({
-//             userId: campaign.createdBy._id,
-//             type: 'PROGRESS_ALERT',
-//             title: 'Campaign Progress Update',
-//             message: message.replace('{progress}', progress.toFixed(1)),
-//             data: { campaignId: campaign._id }
-//         });
-//     }
-
-//     console.log(`📊 Sent ${campaigns.length} progress alerts`);
-// }
 async function handleProgressAlert(data: any) {
     const { message, campaignId } = data;
 
