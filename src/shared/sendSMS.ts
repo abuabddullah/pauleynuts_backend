@@ -68,12 +68,13 @@ const sendSMS = async (to: string, message: string) => {
      const formattedNumber = formatPhoneNumber('+8801783323358');
 
      console.log('Formatted number:', formattedNumber);
+     console.log('Formatted number:', typeof formattedNumber);
 
      try {
           const twilioSendSmsResult = await twilioClient.messages.create({
                body: message,
                messagingServiceSid: config.twilio.twilioServiceSid, // MG SID
-               to: formattedNumber,
+               to: formattedNumber.toString(),
           });
           console.log('🚀 ~ sendSMS ~ twilioSendSmsResult:', twilioSendSmsResult);
 
