@@ -29,6 +29,7 @@ app.use(
                'http://10.10.7.37:3002',
                'https://dashboard.gopassit.org',
                'https://www.gopassit.org',
+               'https://gopassit.org',
                'https://api.gopassit.org',
                'https://mobile-view-website-liard.vercel.app',
           ],
