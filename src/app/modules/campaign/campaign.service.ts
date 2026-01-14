@@ -173,7 +173,9 @@ const getCampaignById = async (id: string) => {
 
 const getCauseOfCampaignById = async (id: string) => {
      const now = new Date();
-     const campaign = await Campaign.findById(id).select('established network missionSummary about citiesServed yearsOfOperation survivorsSupported totalInvitees images');
+     const campaign = await Campaign.findById(id).select(
+          'established network missionSummary about citiesServed yearsOfOperation survivorsSupported totalInvitees images cause_title cause_description cause_mission cause_image',
+     );
      if (!campaign) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Campaign not found.');
      }
