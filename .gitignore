@@ -4,4 +4,4 @@ coverage
 uploads
 winston/error/*
 winston/success/*
-
+settings.json

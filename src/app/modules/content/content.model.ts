@@ -66,7 +66,6 @@ const contentSchema = new Schema<IContent, ContentModel>(
           yearsOfOperation: { type: Number },
           survivorsSupported: { type: Number },
 
-
           // User Level Strategy
           userLevelStrategy: [userLevelStrategySchema],
 
@@ -88,6 +87,9 @@ const contentSchema = new Schema<IContent, ContentModel>(
 
           // Media
           gallery: [{ type: String }],
+
+          //privacyPolicySchema
+          privacyPolicy: privacyPolicySchema,
      },
      {
           timestamps: true,
