@@ -43,7 +43,7 @@ const commonFields = {
      yearsOfOperation: z.number().optional(),
      survivorsSupported: z.number().optional(),
      totalInvitees: z.number().optional(),
-     images: z.string().optional(),
+     images: z.array(z.string()).optional(),
 };
 
 const createCampaignZodSchema = z.object({
