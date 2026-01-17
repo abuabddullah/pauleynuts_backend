@@ -8,18 +8,18 @@ const timeRangeSchema = z.object({
 
 /* Founder Schema */
 const founderSchema = z.object({
-     name: z.string().min(1, "Founder name is required"),
-     role: z.string().min(1, "Founder role is required"),
-     bio: z.string().min(1, "Founder bio is required"),
-     image: z.string().url("Invalid founder image URL"),
+     name: z.string().min(1, 'Founder name is required'),
+     role: z.string().min(1, 'Founder role is required'),
+     bio: z.string().min(1, 'Founder bio is required'),
+     image: z.string().url('Invalid founder image URL'),
 });
 
 /* User Level Strategy Schema */
 const userLevelStrategySchema = z.object({
-     level: z.string().min(1, "Level must be at least 1"),
-     title: z.string().min(1, "Level title is required"),
-     description: z.string().min(1, "Level description is required"),
-     benefits: z.string().min(1, "At least one benefit is required"),
+     level: z.string().min(1, 'Level must be at least 1'),
+     title: z.string().min(1, 'Level title is required'),
+     description: z.string().min(1, 'Level description is required'),
+     benefits: z.string().min(1, 'At least one benefit is required'),
      targetInvitation: z.number().int().min(0),
      targetDonation: z.number().min(0),
      targetRaising: z.number().min(0),
@@ -39,7 +39,10 @@ const privacyPolicySchema = z.object({
 const progressAlertScheduleSchema = z.object({
      frequency: z.nativeEnum(progressAlertFrequeincyEnum),
      day: z.nativeEnum(progressAlertDayEnum),
-     time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)").optional(),
+     time: z
+          .string()
+          .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)')
+          .optional(),
 });
 
 /* Notification Strategy Schema */
@@ -61,12 +64,12 @@ const notificationStrategySchema = z.object({
 export const upsertContentValidation = z.object({
      body: z.object({
           // App Info
-          appName: z.string().min(1, "App name is required").optional(),
-          logo: z.string().url("Invalid logo URL").optional(),
+          appName: z.string().min(1, 'App name is required').optional(),
+          logo: z.string().url('Invalid logo URL').optional(),
           type: z.string().optional(),
 
           // Founders
-          founders: z.array(founderSchema).min(1, "At least one founder is required").optional(),
+          founders: z.array(founderSchema).min(1, 'At least one founder is required').optional(),
 
           // About Section
           introduction: z.string().min(1).optional(),
@@ -83,11 +86,11 @@ export const upsertContentValidation = z.object({
           organizationName: z.string().min(1).optional(),
 
           // Date
-          established: z.string().datetime("Invalid date format").optional(),
+          established: z.string().datetime('Invalid date format').optional(),
 
           // Images
-          images: z.array(z.string().url("Invalid image URL")).optional(),
-          gallery: z.array(z.string().url("Invalid gallery image URL")).optional(),
+          images: z.array(z.string().url('Invalid image URL')).optional(),
+          gallery: z.array(z.string().url('Invalid gallery image URL')).optional(),
           // campaignExpiredAlert: z.boolean().optional(),
           // lowProgressWarning: z.boolean().optional(),
           // mileStoneAlert: z.boolean().optional(),
@@ -102,10 +105,9 @@ export const upsertContentValidation = z.object({
           survivorsSupported: z.number().int().min(0).optional(),
 
           // User Level Strategy
-          userLevelStrategy: z.array(userLevelStrategySchema).min(1, "At least one user level strategy is required").optional(),
+          userLevelStrategy: z.array(userLevelStrategySchema).min(1, 'At least one user level strategy is required').optional(),
 
           // Notification Strategy
-
 
           notificationStrategy: notificationStrategySchema.optional(),
 
@@ -140,9 +142,27 @@ export const timeRangeQuerySchema = z.object({
           }),
 });
 
+// User Level Strategy CRUD validations
+export const createUserLevelStrategyValidation = z.object({
+     body: userLevelStrategySchema,
+});
+
+export const updateUserLevelStrategyValidation = z.object({
+     body: userLevelStrategySchema.partial(),
+});
+
+export const paramsValidation = z.object({
+     params: z.object({
+          strategyId: z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid strategy ID'),
+     }),
+});
+
 // Export all validations
 export const ContentValidation = {
      upsertContentValidation,
      timeRangeSchema,
      timeRangeQuerySchema,
+     createUserLevelStrategyValidation,
+     updateUserLevelStrategyValidation,
+     paramsValidation,
 };

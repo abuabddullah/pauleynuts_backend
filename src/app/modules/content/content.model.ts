@@ -13,18 +13,15 @@ const founderSchema = new Schema(
      { _id: false },
 );
 
-const userLevelStrategySchema = new Schema(
-     {
-          level: { type: String, required: true, enum: Object.values(UserLevel) },
-          title: { type: String, required: true },
-          description: { type: String, required: true },
-          benefits: { type: String },
-          targetInvitation: { type: Number, required: true },
-          targetDonation: { type: Number, required: true },
-          targetRaising: { type: Number, required: true },
-     },
-     { _id: false },
-);
+const userLevelStrategySchema = new Schema({
+     level: { type: String, required: true, enum: Object.values(UserLevel) },
+     title: { type: String, required: true },
+     description: { type: String, required: true },
+     benefits: { type: String },
+     targetInvitation: { type: Number, required: true },
+     targetDonation: { type: Number, required: true },
+     targetRaising: { type: Number, required: true },
+});
 
 const privacyPolicySchema = new Schema(
      {

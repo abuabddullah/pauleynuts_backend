@@ -4,10 +4,8 @@ import sendResponse from '../../../shared/sendResponse';
 import { ContentService } from './content.service';
 import { StatusCodes } from 'http-status-codes';
 
-
-
 const upsertContent = catchAsync(async (req: Request, res: Response) => {
-     console.log("files", req.files);
+     console.log('files', req.files);
      const files = req.files as any;
 
      const contentData = req.body;
@@ -68,8 +66,6 @@ const getContent = catchAsync(async (req: Request, res: Response) => {
      });
 });
 
-
-
 // Get time-range-based statistics
 const getTimeRangeStats = catchAsync(async (req: Request, res: Response) => {
      const { startDate, endDate } = req.query;
@@ -98,9 +94,75 @@ const getDonationGrowthData = catchAsync(async (req: Request, res: Response) => 
      });
 });
 
+// User Level Strategy CRUD operations
+const createUserLevelStrategy = catchAsync(async (req: Request, res: Response) => {
+     const strategyData = req.body;
+     const result = await ContentService.createUserLevelStrategy(strategyData);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.CREATED,
+          success: true,
+          message: 'User level strategy created successfully',
+          data: result,
+     });
+});
+
+const getUserLevelStrategies = catchAsync(async (req: Request, res: Response) => {
+     const result = await ContentService.getUserLevelStrategies();
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'User level strategies retrieved successfully',
+          data: result,
+     });
+});
+
+const getUserLevelStrategyById = catchAsync(async (req: Request, res: Response) => {
+     const { strategyId } = req.params;
+     const result = await ContentService.getUserLevelStrategyById(strategyId);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'User level strategy retrieved successfully',
+          data: result,
+     });
+});
+
+const updateUserLevelStrategy = catchAsync(async (req: Request, res: Response) => {
+     const { strategyId } = req.params;
+     const strategyData = req.body;
+     const result = await ContentService.updateUserLevelStrategy(strategyId, strategyData);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'User level strategy updated successfully',
+          data: result,
+     });
+});
+
+const deleteUserLevelStrategy = catchAsync(async (req: Request, res: Response) => {
+     const { strategyId } = req.params;
+     const result = await ContentService.deleteUserLevelStrategy(strategyId);
+
+     sendResponse(res, {
+          statusCode: StatusCodes.OK,
+          success: true,
+          message: 'User level strategy deleted successfully',
+          data: result,
+     });
+});
+
 export const ContentController = {
      upsertContent,
      getContent,
      getTimeRangeStats,
      getDonationGrowthData,
+     createUserLevelStrategy,
+     getUserLevelStrategies,
+     getUserLevelStrategyById,
+     updateUserLevelStrategy,
+     deleteUserLevelStrategy,
 };

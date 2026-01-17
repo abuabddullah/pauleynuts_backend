@@ -50,16 +50,12 @@ const upsertContent = async (payload: Partial<IContent>) => {
                               name: newFounder.name || existingFounder.name,
                               role: newFounder.role || existingFounder.role,
                               bio: newFounder.bio || existingFounder.bio,
-                              image: newFounder.image || existingFounder.image
+                              image: newFounder.image || existingFounder.image,
                          };
                     }
                }
 
-               const updatedContent = await Content.findByIdAndUpdate(
-                    existingContent._id,
-                    payload,
-                    { new: true, runValidators: true }
-               );
+               const updatedContent = await Content.findByIdAndUpdate(existingContent._id, payload, { new: true, runValidators: true });
 
                // If notification strategy updated, refresh jobs
                if (payload.notificationStrategy && updatedContent) {
@@ -79,10 +75,7 @@ const upsertContent = async (payload: Partial<IContent>) => {
 };
 
 // ============ Setup Notification Jobs ============
-async function setupNotificationJobs(
-     notificationStrategy: IContent['notificationStrategy']
-) {
-
+async function setupNotificationJobs(notificationStrategy: IContent['notificationStrategy']) {
      try {
           // 1. Progress Alert Job
           if (notificationStrategy.progressAlert) {
@@ -107,9 +100,7 @@ async function setupNotificationJobs(
 }
 
 // ============ Progress Alert Job ============
-async function addProgressAlertJob(
-     notificationStrategy: IContent['notificationStrategy']
-) {
+async function addProgressAlertJob(notificationStrategy: IContent['notificationStrategy']) {
      const { frequency, day, time } = notificationStrategy.progressAlertSchedule;
 
      const [hour, minute] = time ? time.split(':') : ['09', '00'];
@@ -119,15 +110,12 @@ async function addProgressAlertJob(
           // Weekly: প্রতি সপ্তাহে নির্দিষ্ট দিনে
           const dayNumber = getDayNumber(day!);
           cronExpression = `${minute} ${hour} * * ${dayNumber}`;
-
      } else if (frequency === progressAlertFrequeincyEnum.monthly) {
           // ✅ Monthly: প্রতি মাসের 1 তারিখে
           cronExpression = `${minute} ${hour} 1 * *`;
-
      } else if (frequency === progressAlertFrequeincyEnum.biweekly) {
           // Bi-weekly: মাসের 1 এবং 15 তারিখে
           cronExpression = `${minute} ${hour} 1,15 * *`;
-
      } else {
           // Default: Bi-weekly
           cronExpression = `${minute} ${hour} 1,15 * *`;
@@ -138,23 +126,25 @@ async function addProgressAlertJob(
           {
                message: notificationStrategy.progressAlertMessage,
                frequency,
-               campaignId: notificationStrategy.campaignId
+               campaignId: notificationStrategy.campaignId,
           },
           {
                repeat: {
-                    pattern: cronExpression
+                    pattern: cronExpression,
                },
-               jobId: 'progress-alert-job'
-          }
+               jobId: 'progress-alert-job',
+          },
      );
 
      const nextRunTime = getNextCronTime(cronExpression);
      console.log(`📅 Progress Alert scheduled: ${cronExpression}`);
-     console.log(`⏰ Next run: ${nextRunTime.toLocaleString('en-US', {
-          timeZone: 'Asia/Dhaka',
-          dateStyle: 'full',
-          timeStyle: 'long'
-     })}`);
+     console.log(
+          `⏰ Next run: ${nextRunTime.toLocaleString('en-US', {
+               timeZone: 'Asia/Dhaka',
+               dateStyle: 'full',
+               timeStyle: 'long',
+          })}`,
+     );
      console.log(`⏱️ Time until next run: ${getTimeUntil(nextRunTime)}`);
 }
 
@@ -167,23 +157,24 @@ async function addLowProgressWarningJob() {
           {},
           {
                repeat: {
-                    pattern: cronExpression
+                    pattern: cronExpression,
                },
-               jobId: 'low-progress-warning-job'
-          }
+               jobId: 'low-progress-warning-job',
+          },
      );
 
      // ✅ Log next run time
      const nextRunTime = getNextCronTime(cronExpression);
      console.log('⚠️ Low Progress Warning scheduled: Daily at 10 AM');
-     console.log(`⏰ Next run: ${nextRunTime.toLocaleString('en-US', {
-          timeZone: 'Asia/Dhaka',
-          dateStyle: 'full',
-          timeStyle: 'long'
-     })}`);
+     console.log(
+          `⏰ Next run: ${nextRunTime.toLocaleString('en-US', {
+               timeZone: 'Asia/Dhaka',
+               dateStyle: 'full',
+               timeStyle: 'long',
+          })}`,
+     );
      console.log(`⏱️ Time until next run: ${getTimeUntil(nextRunTime)}`);
 }
-
 
 // ============ Campaign Expired Alert Job ============
 
@@ -194,20 +185,22 @@ async function addCampaignExpiredAlertJob() {
           {},
           {
                repeat: {
-                    pattern: cronExpression
+                    pattern: cronExpression,
                },
-               jobId: 'campaign-expired-alert-job'
-          }
+               jobId: 'campaign-expired-alert-job',
+          },
      );
 
      // ✅ Log next run time
      const nextRunTime = getNextCronTime(cronExpression);
      console.log('⏰ Campaign Expired Alert scheduled: Daily at 8 AM');
-     console.log(`⏰ Next run: ${nextRunTime.toLocaleString('en-US', {
-          timeZone: 'Asia/Dhaka',
-          dateStyle: 'full',
-          timeStyle: 'long'
-     })}`);
+     console.log(
+          `⏰ Next run: ${nextRunTime.toLocaleString('en-US', {
+               timeZone: 'Asia/Dhaka',
+               dateStyle: 'full',
+               timeStyle: 'long',
+          })}`,
+     );
      console.log(`⏱️ Time until next run: ${getTimeUntil(nextRunTime)}`);
 }
 
@@ -216,15 +209,11 @@ async function removeExistingNotificationJobs() {
      try {
           const repeatableJobs = await scheduleQueue.getRepeatableJobs();
 
-          const jobIds = [
-               'progress-alert-job',
-               'low-progress-warning-job',
-               'campaign-expired-alert-job'
-          ];
+          const jobIds = ['progress-alert-job', 'low-progress-warning-job', 'campaign-expired-alert-job'];
 
           for (const job of repeatableJobs) {
                // Check if job.key contains any of our job IDs
-               const shouldRemove = jobIds.some(id => job.key.includes(id));
+               const shouldRemove = jobIds.some((id) => job.key.includes(id));
 
                if (shouldRemove) {
                     await scheduleQueue.removeRepeatableByKey(job.key);
@@ -364,9 +353,90 @@ const getDonationGrowthData = async (startDate?: string, endDate?: string) => {
 
      return growthData;
 };
+
+// User Level Strategy CRUD operations
+const createUserLevelStrategy = async (strategyData: any) => {
+     const content = await Content.findOne();
+     if (!content) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Content not found');
+     }
+
+     // Add the new strategy to the userLevelStrategy array
+     content.userLevelStrategy.push(strategyData);
+     await content.save();
+
+     // Return the newly added strategy
+     const newStrategy = content.userLevelStrategy[content.userLevelStrategy.length - 1];
+     return newStrategy;
+};
+
+const getUserLevelStrategies = async () => {
+     const content = await Content.findOne();
+     if (!content) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Content not found');
+     }
+
+     return content.userLevelStrategy;
+};
+
+const getUserLevelStrategyById = async (strategyId: string) => {
+     const content = await Content.findOne();
+     if (!content) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Content not found');
+     }
+
+     const strategy = content.userLevelStrategy.find((strategy: any) => strategy._id.toString() === strategyId);
+     if (!strategy) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'User level strategy not found');
+     }
+
+     return strategy;
+};
+
+const updateUserLevelStrategy = async (strategyId: string, strategyData: any) => {
+     const content = await Content.findOne();
+     if (!content) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Content not found');
+     }
+
+     const strategyIndex = content.userLevelStrategy.findIndex((strategy: any) => strategy._id && strategy._id.toString() === strategyId);
+     if (strategyIndex === -1) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'User level strategy not found');
+     }
+
+     // Update the strategy
+     Object.assign(content.userLevelStrategy[strategyIndex], strategyData);
+     await content.save();
+
+     return content.userLevelStrategy[strategyIndex];
+};
+
+const deleteUserLevelStrategy = async (strategyId: string) => {
+     const content = await Content.findOne();
+     if (!content) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'Content not found');
+     }
+
+     const strategyIndex = content.userLevelStrategy.findIndex((strategy: any) => strategy._id && strategy._id.toString() === strategyId);
+     if (strategyIndex === -1) {
+          throw new AppError(StatusCodes.NOT_FOUND, 'User level strategy not found');
+     }
+
+     // Remove the strategy
+     const deletedStrategy = content.userLevelStrategy.splice(strategyIndex, 1)[0];
+     await content.save();
+
+     return deletedStrategy;
+};
+
 export const ContentService = {
      upsertContent,
      getContent,
      getTimeRangeStats,
      getDonationGrowthData,
+     createUserLevelStrategy,
+     getUserLevelStrategies,
+     getUserLevelStrategyById,
+     updateUserLevelStrategy,
+     deleteUserLevelStrategy,
 };
