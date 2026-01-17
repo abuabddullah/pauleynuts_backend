@@ -11,10 +11,10 @@ const CampaignSchema = new Schema<ICampaign>(
           overall_raised: { type: Number, default: 0, min: 0 },
           description: { type: String, required: true },
           title: { type: String, required: true, trim: true },
-          address: { type: String, required: true },
-          donor_name: { type: String, required: true },
+          address: { type: String },
+          donor_name: { type: String },
           dafPartner: { type: String },
-          internalTrackingId: { type: String, unique: true, sparse: true },
+          internalTrackingId: { type: String, unique: true, sparse: true, required: false },
           campaignStatus: {
                type: String,
                enum: Object.values(CampaignStatus),
