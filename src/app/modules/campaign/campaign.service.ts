@@ -23,7 +23,7 @@ import { CampaignStatus } from './campaign.enum';
 const createCampaign = async (payload: ICampaign & { image?: string }, user: any): Promise<ICampaign> => {
      const createCampaignDto = {
           ...payload,
-          cause_image: payload.image,
+          // cause_image: payload.image,
           createdBy: new mongoose.Types.ObjectId(user.id),
      };
      const result = await Campaign.create(createCampaignDto);
@@ -57,12 +57,19 @@ const updateCampaign = async (id: string, payload: Partial<ICampaign & { image?:
           throw new AppError(StatusCodes.NOT_FOUND, 'Campaign not found.');
      }
 
-     if (payload.image && isExist.cause_image) {
-          unlinkFile(isExist.cause_image);
+     // if (payload.image && isExist.cause_image) {
+     //      unlinkFile(isExist.cause_image);
+     // }
+
+     if (payload.images && isExist.images) {
+          payload.images.forEach((image) => {
+               unlinkFile(image);
+          });
      }
      const updateCampaignDto = {
           ...payload,
-          cause_image: payload.image,
+          // cause_image: payload.image,
+          images: payload.images,
      };
      const result = await Campaign.findByIdAndUpdate(id, updateCampaignDto, { new: true });
      if (result && payload.isSendAlert) {
@@ -124,8 +131,13 @@ const hardDeleteCampaign = async (id: string): Promise<ICampaign | null> => {
      if (!result) {
           throw new AppError(StatusCodes.NOT_FOUND, 'Campaign not found.');
      }
-     if (result.cause_image) {
-          unlinkFile(result.cause_image);
+     // if (result.cause_image) {
+     //      unlinkFile(result.cause_image);
+     // }
+     if (result.images) {
+          result.images.forEach((image) => {
+               unlinkFile(image);
+          });
      }
      return result;
 };

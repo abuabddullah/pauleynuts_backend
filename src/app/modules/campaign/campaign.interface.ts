@@ -61,7 +61,7 @@ export interface ICampaign extends Document {
      message?: string;
      address: string;
      donor_name: string;
-     dafPartner: string;
+     dafPartner?: string;
      internalTrackingId: string;
      campaignStatus: CampaignStatus;
      total_invitees: number;
@@ -78,7 +78,7 @@ export interface ICampaign extends Document {
      cause_title: string;
      cause_description: string;
      cause_mission: string;
-     cause_image: string;
+     // cause_image: string;
 
      // ✅ Add these missing fields
      currentAmount: number; // or overall_raised alias

@@ -16,7 +16,7 @@ const commonFields = {
      address: z.string().min(5, 'Address is required'),
      donor_name: z.string().min(2, 'Donor name is required'),
      dafPartner: z.string().optional(),
-     internalTrackingId: z.string().optional(),
+     internalTrackingId: z.string(),
      campaignStatus: z.nativeEnum(CampaignStatus).optional(),
      organization_name: z.string().min(2, 'Organization name is required'),
      organization_network: z.string().optional(),
@@ -31,7 +31,7 @@ const commonFields = {
      cause_title: z.string().min(3, 'Cause title is required'),
      cause_description: z.string().min(10, 'Cause description is required'),
      cause_mission: z.string().optional(),
-     cause_image: z.string().url('Invalid image URL').or(z.literal('')).optional(),
+     // cause_image: z.string().url('Invalid image URL').or(z.literal('')).optional(),
      alert: z.string().optional(),
      message: z.string().optional(),
 

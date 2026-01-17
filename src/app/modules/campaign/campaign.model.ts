@@ -13,7 +13,7 @@ const CampaignSchema = new Schema<ICampaign>(
           title: { type: String, required: true, trim: true },
           address: { type: String, required: true },
           donor_name: { type: String, required: true },
-          dafPartner: { type: String, default: '' },
+          dafPartner: { type: String },
           internalTrackingId: { type: String, unique: true, sparse: true },
           campaignStatus: {
                type: String,
@@ -36,7 +36,7 @@ const CampaignSchema = new Schema<ICampaign>(
           cause_title: { type: String, required: true },
           cause_description: { type: String, required: true },
           cause_mission: { type: String, default: '' },
-          cause_image: { type: String, default: '' },
+          // cause_image: { type: String, default: '' },
           isDeleted: { type: Boolean, default: false },
           milestoneNotified: { type: Boolean, default: false },
           deletedAt: { type: Date },
