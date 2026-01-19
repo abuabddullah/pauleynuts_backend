@@ -29,6 +29,7 @@ app.use(
                'http://localhost:3001',
                'http://localhost:3000',
                'http://10.10.7.37:3002',
+               'http://10.10.7.37:3000',
                'https://dashboard.gopassit.org',
                'https://www.gopassit.org',
                'https://gopassit.org',
