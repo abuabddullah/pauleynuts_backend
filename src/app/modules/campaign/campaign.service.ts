@@ -19,6 +19,7 @@ import { USER_ROLES } from '../../../enums/user';
 import { INotification } from '../notification/notification.interface';
 import { IUser } from '../user/user.interface';
 import { CampaignStatus } from './campaign.enum';
+import { ContentService } from '../content/content.service';
 
 const createCampaign = async (payload: ICampaign & { image?: string }, user: any): Promise<ICampaign> => {
      const createCampaignDto = {
@@ -308,15 +309,15 @@ const invitePeopleToCampaign = async (
                );
 
                // level up the donor
-               const levelStrategy = await Content.findOne().select('userLevelStrategy').lean();
+               const userLevelStrategy = await ContentService.getUserLevelStrategies();
 
-               if (levelStrategy?.userLevelStrategy && Array.isArray(levelStrategy.userLevelStrategy) && levelStrategy.userLevelStrategy.length > 0) {
+               if (userLevelStrategy && Array.isArray(userLevelStrategy) && userLevelStrategy.length > 0) {
                     const userTotalRaised = isExitUser.totalRaised || 0;
                     const userTotalDonated = isExitUser.totalDonated || 0;
                     const userTotalInvited = isExitUser.totalInvited || 0;
 
                     // Find the appropriate level based on total raised, donated, and invited
-                    const userLevelTobeUpdatedTo = levelStrategy.userLevelStrategy.find(
+                    const userLevelTobeUpdatedTo = userLevelStrategy.find(
                          (strategy: UserLevelStrategy) => userTotalRaised >= strategy?.targetRaising && userTotalDonated >= strategy?.targetDonation && userTotalInvited >= strategy?.targetInvitation,
                     );
 
@@ -329,7 +330,7 @@ const invitePeopleToCampaign = async (
                     const invitorTotalInvited = isExistInvitorUser.totalInvited || 0;
 
                     // Find the appropriate level for the invitor
-                    const invitorLevelTobeUpdatedTo = levelStrategy.userLevelStrategy.find(
+                    const invitorLevelTobeUpdatedTo = userLevelStrategy.find(
                          (strategy: UserLevelStrategy) =>
                               invitorTotalRaised >= strategy?.targetRaising && invitorTotalDonated >= strategy?.targetDonation && invitorTotalInvited >= strategy?.targetInvitation,
                     );
