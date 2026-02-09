@@ -29,6 +29,7 @@ router.route('/admin').post(
      UserController.createAdmin
 );
 
+// remove-USER
 router.delete("/remove-user", auth(USER_ROLES.USER), UserController.deleteProfile);
 
 
