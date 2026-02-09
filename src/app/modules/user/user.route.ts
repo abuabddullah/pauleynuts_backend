@@ -28,6 +28,10 @@ router.route('/admin').post(
      validateRequest(UserValidation.createUserZodSchema),
      UserController.createAdmin
 );
+
+router.delete("/remove-user", auth(USER_ROLES.USER), UserController.deleteProfile);
+
+
 // User search and management routes
 router.route('/find/id/:id').get(
      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN),
