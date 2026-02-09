@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import config from '../../../config';
 import passport from 'passport';
 import { jwtHelper } from '../../../helpers/jwtHelper';
+import { JwtPayload } from 'jsonwebtoken';
 
 const verifyContact = catchAsync(async (req, res) => {
      const { ...verifyData } = req.body;
@@ -24,6 +25,7 @@ const verifyContact = catchAsync(async (req, res) => {
 
 const loginUser = catchAsync(async (req, res) => {
      const { ...loginData } = req.body;
+     console.log("CHECKING1", loginData)
      const result = await AuthService.loginUserFromDB(loginData);
      const cookieOptions: any = { secure: false, httpOnly: true, maxAge: 31536000000 };
 
@@ -167,6 +169,8 @@ const facebookAuthCallback = catchAsync(async (req, res) => {
           res.redirect(redirectUrl);
      })(req, res);
 });
+
+
 
 export const AuthController = {
      verifyContact,
