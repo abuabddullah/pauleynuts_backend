@@ -27,6 +27,7 @@ router.get('/unpaginated', campaignController.getAllUnpaginatedCampaigns);
 
 router.delete('/hard-delete/:id', auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN), campaignController.hardDeleteCampaign);
 
+router.post('duplicate-campaign/:id', campaignController.duplicateCampaignById);
 router.post(
      '/invite-donate/:campaignId',
      auth(USER_ROLES.SUPER_ADMIN, USER_ROLES.ADMIN, USER_ROLES.USER),

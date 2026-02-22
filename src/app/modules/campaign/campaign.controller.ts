@@ -84,6 +84,18 @@ const getCampaignById = catchAsync(async (req: Request, res: Response) => {
      });
 });
 
+const duplicateCampaignById = catchAsync(async (req: Request, res: Response) => {
+     const { id } = req.params;
+     const result = await campaignService.duplicateCampaignById(id);
+
+     sendResponse(res, {
+          statusCode: 200,
+          success: true,
+          message: 'Campaign retrieved successfully',
+          data: result,
+     });
+});
+
 const getCauseOfCampaignById = catchAsync(async (req: Request, res: Response) => {
      const { id } = req.params;
      const result = await campaignService.getCauseOfCampaignById(id);
@@ -124,6 +136,7 @@ const alertAboutCampaign = catchAsync(async (req: Request, res: Response) => {
 
 export const campaignController = {
      createCampaign,
+     duplicateCampaignById,
      getAllCampaigns,
      getAllUnpaginatedCampaigns,
      updateCampaign,
