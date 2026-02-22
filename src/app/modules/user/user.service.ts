@@ -34,7 +34,7 @@ const createUserToDB = async (payload: { name: string; contact: string; role: US
                          verified: false,
                          status: 'active',
                          isDeleted: false,
-                         totalLogin: 0,
+                         loggedinCampaigns:[],
                          totalRaised: 0,
                          totalDonated: 0,
                          totalInvited: 0,
