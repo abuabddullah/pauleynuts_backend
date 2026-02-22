@@ -176,7 +176,7 @@ const forgetPasswordByUrlToDB = async (email: string) => {
 
 
 const verifyContactToDB = async (payload: IVerifyContact) => {
-     const { contact, oneTimeCode, email } = payload;
+     const { contact, oneTimeCode, email, campaignId } = payload;
 
      // Find user
      let isExistUser;
@@ -233,7 +233,9 @@ const verifyContactToDB = async (payload: IVerifyContact) => {
                               oneTimeCode: null,
                               expireAt: null
                          },
-                         $inc: { totalLogin: 1 }
+                         $addToSet: {
+                           loggedinCampaigns: campaignId 
+                         }
                     }
                );
           } else {
@@ -267,19 +269,13 @@ const verifyContactToDB = async (payload: IVerifyContact) => {
 
           user = await User.findById(isExistUser._id);
 
-          // ✅ Check for campaign
-          const campaign = await getCampaignId(isExistUser._id);
-
           const response: any = {
                isVerified: true,
                message,
                accessToken,
-               user // ✅ totalLogin included
+               user, // ✅ totalLogin included
+               campaignId
           };
-
-          if (campaign) {
-               response.campaignId = campaign._id;
-          }
 
           return response;
 
